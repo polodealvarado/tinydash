@@ -1,18 +1,40 @@
 # Your Nymiz
 
-What needs my attention today — agenda, unread email and Slack — in one place, one click away in the macOS menu bar.
+Lo que necesita tu atención hoy (agenda, correo sin leer y Slack) en un solo sitio, a un clic desde la barra de menús del Mac.
 
-- **Dashboard:** https://example.com/dashboard (source: `dashboard/your-nymiz.html`)
-- **Menu bar app:** `macos-app/`
+- **Panel:** https://example.com/dashboard (código: `dashboard/your-nymiz.html`)
+- **App de la barra de menús:** `macos-app/`
 
-## Install the menu bar app
+## Instalar la app
 
 ```bash
-xcode-select --install     # once, if swiftc is missing
+xcode-select --install     # una vez, si falta swiftc
 cd macos-app
-./build.sh                 # builds, installs in /Applications and opens it
+./build.sh                 # compila, instala en /Applications y la abre
 ```
 
-Click the ghost in the menu bar to open the dashboard. Right-click for Refresh, Open in browser, Diagnostics…, Open at login and Quit.
+Pulsa el fantasma de la barra para abrir el panel. Clic derecho: Refresh, Open in browser, Diagnostics…, Open at login y Quit.
 
-See `CLAUDE.md` for how everything fits together.
+## Estructura
+
+```
+your-nymiz/
+├── CLAUDE.md                  contexto para Claude Code (en inglés)
+├── dashboard/your-nymiz.html  el panel publicado en claude.ai
+├── macos-app/                 app de la barra (main.swift, Info.plist, build.sh)
+├── assets/                    icono del fantasma (SVG) y vista previa
+└── docs/
+    ├── ARQUITECTURA.md              cómo encaja todo, datos y formatos
+    ├── CONECTORES-Y-PUBLICACION.md  conectores, manifiesto y cómo publicar cambios
+    ├── SOLUCION-DE-PROBLEMAS.md     panel en blanco, login, errores, git
+    ├── HISTORIAL.md                 versiones y decisiones tomadas
+    └── ROADMAP.md                   ideas pendientes
+```
+
+## Trabajar con Claude Code
+
+```bash
+cd ~/Documents/your-nymiz && claude
+```
+
+Claude Code puede editar el panel y la app. Para que los cambios del panel se vean en claude.ai hay que republicarlo desde claude.ai o Cowork (ver `docs/CONECTORES-Y-PUBLICACION.md`).

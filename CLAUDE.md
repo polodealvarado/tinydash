@@ -2,6 +2,10 @@
 
 Personal "what needs my attention today" dashboard for the user, plus a macOS menu bar app that opens it.
 
+Human docs (Spanish) live in `docs/`: `ARQUITECTURA.md` (architecture, data shapes), `CONECTORES-Y-PUBLICACION.md` (connectors, capability manifest, publish flow), `SOLUCION-DE-PROBLEMAS.md` (troubleshooting), `HISTORIAL.md` (versions + decisions), `ROADMAP.md` (pending ideas). Keep them in sync when you change behavior: add a row to `HISTORIAL.md` for every dashboard republish or app version bump.
+
+Talk to the user in Spanish. Dashboard UI copy stays in English.
+
 ## Parts
 
 | Path | What it is |
@@ -42,6 +46,10 @@ Claude Code can't publish claude.ai Artifacts from a local shell. To update the 
 - Links to non-claude hosts (Gmail, Slack, Meet…) open in the default browser (`isInternal()` / `INTERNAL_HOSTS`).
 - Right-click menu: Refresh, Open in browser, Diagnostics… (URL, load state, page text length, last error — with Copy), Open at login (`SMAppService`, macOS 13+), Quit.
 - Web Inspector enabled (`isInspectable`, macOS 13.3+): right-click inside the popover → Inspect Element.
+
+## Repo housekeeping
+
+- `.git/leftovers/` holds stale lock files moved there when the repo was created from a sandbox that couldn't delete files; `.git/objects/**/tmp_obj_*` are harmless leftovers from the same step. Safe to delete both.
 
 ## Status / known issues
 

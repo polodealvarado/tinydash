@@ -33,6 +33,8 @@ flowchart LR
 
 ## Sincronización
 
+Los indicadores de pendientes comparten el mismo criterio: agenda usa `pendingEvents()` (sin marca de hecho y sin haber terminado por horario), correo usa `pendingMail()` (sin marca de hecho), tareas usa `openTasks()` y Slack usa `slackPending()`. Agenda aplica ese criterio también a Now/Next y al resumen de invitaciones sin responder. Las marcas de agenda y correo son locales y diarias; no modifican Calendar ni el estado de lectura en Gmail. Las filas completadas permanecen visibles para poder deshacerlas. En correo, el total estimado de Gmail se presenta aparte del contador local de pendientes.
+
 Una vez al día (ver `docs/CONFIGURACION.md`) y con **Sync all**. Cada sincronización sustituye entera la anterior: si una fuente falla, su sección muestra el error en vez de datos viejos. Si la página se cargó otro día, la app la recarga al sincronizar para que "hoy" avance.
 
 ## Identidad de Tinydash

@@ -1,3 +1,10 @@
+## Changes in 2.3.1
+
+- Completing a calendar event immediately updates every pending counter and removes it from Now/Next.
+- Email section counts now match the local review status shown in the summary.
+- Slack counters update immediately when a message is marked as seen.
+- Completed calendar events, emails, and tasks stay visible so they can be unchecked.
+
 ## Install with Homebrew
 
 ```sh

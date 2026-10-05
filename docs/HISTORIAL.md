@@ -29,6 +29,8 @@ Evolución técnica del panel y la aplicación de macOS.
 
 | 2.3.0 (5/10/2026) | Distribución Homebrew con paquete universal para Apple Silicon e Intel, checksum SHA-256, workflows de compilación y publicación, y guía de releases. Firma ad hoc; notarización pendiente de Apple Developer. |
 
+| 2.3.1 (5/10/2026) | Los contadores de agenda, resumen y reunión actual/próxima excluyen reuniones marcadas como hechas. El contador de la sección de correo coincide con sus pendientes de revisión local. Los contadores de Slack se actualizan al marcar como visto, antes de que termine la animación. Agenda, correo y tareas conservan las filas completadas para poder deshacer la marca. |
+
 ## Decisiones
 
 - **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.

@@ -170,7 +170,7 @@ a.chip:hover{text-decoration:underline}
   <div class="overview" aria-label="Today at a glance">
     <button class="metric" type="button" data-view="cal" aria-label="Show agenda"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg><strong id="stat-cal">—</strong><span>Events left</span></button>
     <button class="metric" type="button" data-view="tasks" aria-label="Show tasks"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg><strong id="stat-tasks">—</strong><span>Open tasks</span></button>
-    <button class="metric" type="button" data-view="mail" aria-label="Show email"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg><strong id="stat-mail">—</strong><span>Unread</span></button>
+    <button class="metric" type="button" data-view="mail" aria-label="Show email"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg><strong id="stat-mail">—</strong><span>Email to review</span></button>
     <button class="metric" type="button" data-view="slack" aria-label="Show Slack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 6 21M18 3l-2 18M3 9h18M2 15h18"/></svg><strong id="stat-slack">—</strong><span>To review</span></button>
   </div>
   <nav class="navigation" aria-label="Dashboard sections">
@@ -227,7 +227,7 @@ a.chip:hover{text-decoration:underline}
     <section class="panel" id="p-mail" aria-labelledby="h-mail">
       <div class="ph"><h2 id="h-mail"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>Unread email</h2><span class="count" id="c-mail"></span></div>
       <div class="body" id="b-mail"></div>
-      <div class="foot">Gmail · inbox, last 3 days</div>
+      <div class="foot" id="f-mail">Gmail · inbox, last 3 days · checks apply only in Tinydash</div>
     </section>
     <section class="panel" id="p-slack" aria-labelledby="h-slack">
       <div class="ph"><h2 id="h-slack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 6 21M18 3l-2 18M3 9h18M2 15h18"/></svg>Slack</h2><span class="count" id="c-slack"></span></div>
@@ -363,8 +363,13 @@ a.chip:hover{text-decoration:underline}
   const convoName = m => m.im ? m.fromName : m.chName;
 
   // ---- renderers ----
+  // Every pending indicator uses the same local completion state.
+  function pendingEvents(now = Date.now()){
+    return (S.cal || []).filter(e => !done["cal-"+e.id] && (e.allDay || !e.end || e.end.getTime() > now));
+  }
+  function pendingMail(){ return (S.mail || []).filter(t => !done["mail-"+t.id]); }
   function checkbox(key){
-    return '<input type="checkbox" class="check" data-done="'+esc(key)+'" aria-label="Mark as done"'+(done[key]?" checked":"")+'>';
+    return '<input type="checkbox" class="check" data-done="'+esc(key)+'" aria-label="'+(done[key]?"Mark as pending":"Mark as done")+'"'+(done[key]?" checked":"")+'>';
   }
   function renderState(part, html, isErr){
     $("b-"+part).innerHTML = '<div class="state'+(isErr?" err":"")+'">'+html+'</div>';
@@ -376,19 +381,19 @@ a.chip:hover{text-decoration:underline}
     if (!S[part]) { renderState(part, A.syncing ? "Syncing…" : "Not synced yet. Press <b>Sync all</b>."); return true; }
     return false;
   }
-  function renderCal(){
+  function renderCal(now = Date.now()){
     $("c-cal").textContent = "";
     if (gate("cal", A.google, "Google")) return;
-    const now = Date.now(), evs = S.cal;
-    $("c-cal").textContent = evs.length ? evs.length + (evs.length === 1 ? " event" : " events") : "";
+    const evs = S.cal;
+    $("c-cal").textContent = pendingEvents(now).length + " left";
     if (!evs.length) { renderState("cal", "Nothing on the calendar today. A clear day for deep work."); return; }
     $("b-cal").innerHTML = '<ul class="list">' + evs.map(e => {
-      const live = !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
-      const past = !e.allDay && e.end && e.end.getTime() <= now;
       const key = "cal-" + e.id;
+      const live = !done[key] && !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
+      const past = !e.allDay && e.end && e.end.getTime() <= now;
       const chips = [];
       if (live) chips.push('<span class="chip accent">In progress</span>');
-      if (e.needsReply) chips.push('<span class="chip urgent">Not answered</span>');
+      if (e.needsReply && !done[key] && !past) chips.push('<span class="chip urgent">Not answered</span>');
       if (e.conf) chips.push('<a class="chip accent" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>');
       const meta = [e.allDay ? "All day" : (e.end ? "until " + hhmm(e.end) : ""), e.people ? e.people + (e.people===1?" person":" people") : "", e.location].filter(Boolean).join(" · ");
       return '<li class="item'+(live?" live":"")+(past?" past":"")+(done[key]?" done":"")+'">'
@@ -401,9 +406,11 @@ a.chip:hover{text-decoration:underline}
   }
   function renderMail(){
     $("c-mail").textContent = "";
+    $("f-mail").textContent = "Gmail · inbox, last 3 days · checks apply only in Tinydash";
     if (gate("mail", A.google, "Google")) return;
     const th = S.mail, total = Math.max(th.length, S.mailTotal || 0);
-    $("c-mail").textContent = th.length ? (total > th.length ? th.length + " of ~" + total : String(th.length)) : "";
+    $("c-mail").textContent = pendingMail().length + " to review";
+    if (total > th.length) $("f-mail").textContent += " · " + th.length + " of ~" + total + " threads loaded";
     if (!th.length) { renderState("mail", "Inbox zero. No unread email in your inbox."); return; }
     $("b-mail").innerHTML = '<ul class="list">' + th.map(t => {
       const key = "mail-" + t.id;
@@ -475,7 +482,7 @@ a.chip:hover{text-decoration:underline}
     const todayStr = ymd(new Date());
     const list = A.tasks.slice().sort((a,b) => (a.done - b.done) || ((a.due||"9999") < (b.due||"9999") ? -1 : (a.due||"9999") > (b.due||"9999") ? 1 : a.created - b.created));
     const n = openTasks().length;
-    $("c-tasks").textContent = n ? n + " open" : "";
+    $("c-tasks").textContent = n + " open";
     const nDone = A.tasks.length - n;
     $("f-tasks").innerHTML = "Saved on this Mac" + (nDone ? ' · <button type="button" id="clearDone">Clear '+nDone+' done</button>' : "");
     if (!list.length) { renderState("tasks", "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
@@ -501,11 +508,10 @@ a.chip:hover{text-decoration:underline}
     $("taskText").value = ""; $("taskDue").value = ""; $("taskText").focus();
   });
 
-  function renderNow(){
+  function renderNow(now = Date.now()){
     const box = $("now");
     if (!S.cal) { box.hidden = true; return; }
-    const now = Date.now();
-    const timed = S.cal.filter(e => !e.allDay && e.start && e.end);
+    const timed = pendingEvents(now).filter(e => !e.allDay && e.start && e.end);
     const live = timed.find(e => e.start.getTime() <= now && e.end.getTime() > now);
     const next = timed.find(e => e.start.getTime() > now);
     const e = live || next;
@@ -516,19 +522,19 @@ a.chip:hover{text-decoration:underline}
       + (e.conf ? '<a class="join" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>' : '');
     box.hidden = false;
   }
-  function renderSummary(){
+  function renderSummary(now = Date.now()){
     const bits = [];
     if (S.cal) {
-      const left = S.cal.filter(e => e.allDay || !e.end || e.end.getTime() > Date.now()).length;
+      const pending = pendingEvents(now), left = pending.length;
       bits.push("<b>"+left+"</b> "+(left===1?"event left":"events left"));
-      const rsvp = S.cal.filter(e => e.needsReply).length;
+      const rsvp = pending.filter(e => e.needsReply).length;
       if (rsvp) bits.push("<b>"+rsvp+"</b> not answered");
     }
     const nt = openTasks().length;
     if (nt) bits.push("<b>"+nt+"</b> "+(nt===1?"open task":"open tasks"));
     if (S.mail) {
-      const open = S.mail.filter(t => !done["mail-"+t.id]).length;
-      bits.push("<b>"+open+"</b> "+(open===1?"unread email":"unread emails"));
+      const open = pendingMail().length;
+      bits.push("<b>"+open+"</b> "+(open===1?"email to review":"emails to review"));
     }
     if (S.slackdm || S.slackmen) bits.push("<b>"+slackPending()+"</b> to see on Slack");
     $("summary").innerHTML = bits.length ? bits.join(" · ") : (A.google || A.slack ? "Nothing synced yet." : "Connect Google and Slack in Settings to get started.");
@@ -551,10 +557,10 @@ a.chip:hover{text-decoration:underline}
   document.querySelectorAll("[data-view]").forEach(button => {
     if (button.tagName === "BUTTON") button.addEventListener("click", () => selectView(button.dataset.view));
   });
-  function renderOverview(){
-    $("stat-cal").textContent = S.cal ? S.cal.filter(e => e.allDay || !e.end || e.end.getTime() > Date.now()).length : "—";
+  function renderOverview(now = Date.now()){
+    $("stat-cal").textContent = S.cal ? pendingEvents(now).length : "—";
     $("stat-tasks").textContent = openTasks().length;
-    $("stat-mail").textContent = S.mail ? S.mail.filter(t => !done["mail-"+t.id]).length : "—";
+    $("stat-mail").textContent = S.mail ? pendingMail().length : "—";
     $("stat-slack").textContent = S.slackdm || S.slackmen ? slackPending() : "—";
     $("fresh").dataset.state = A.syncing ? "syncing" : A.sync && A.sync.at ? "synced" : "idle";
   }
@@ -566,7 +572,10 @@ a.chip:hover{text-decoration:underline}
     $("s-state").className = "chip" + (A.slack ? " accent" : "");
     $("s-form").hidden = A.slack; $("s-on").hidden = !A.slack;
   }
-  function renderAll(){ renderCal(); renderTasks(); renderMail(); renderSlackDm(); renderSlackMen(); renderNow(); renderSummary(); renderOverview(); renderSettings(); }
+  function renderAll(){
+    const now = Date.now();
+    renderCal(now); renderTasks(); renderMail(); renderSlackDm(); renderSlackMen(); renderNow(now); renderSummary(now); renderOverview(now); renderSettings();
+  }
 
   // Called by the app with the whole state after load, each sync and each settings change.
   window.nymizUpdate = state => {
@@ -602,6 +611,7 @@ a.chip:hover{text-decoration:underline}
     const k = t.dataset.seen;
     if (seen[k]) { delete seen[k]; saveSeen(); renderAll(); return; }
     seen[k] = Date.now(); saveSeen();
+    const now = Date.now(); renderSummary(now); renderOverview(now);
     t.classList.add("on"); t.setAttribute("aria-pressed","true");   // green check for a beat, then drop the row
     setTimeout(renderAll, showSeen.slackdm || showSeen.slackmen ? 0 : 450);
   });

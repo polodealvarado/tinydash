@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 36 36" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tinydash pencil logo</title>
+  <rect x="2.5" y="2.5" width="31" height="31" rx="6.8" fill="#6753C7"/>
+  <g transform="translate(6 6)" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m4 20 1.2-4.8L16 4.4a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8 4 20Z"/>
+    <path d="m13.8 6.6 3.6 3.6M5.2 15.2l3.6 3.6"/>
+  </g>
+</svg>

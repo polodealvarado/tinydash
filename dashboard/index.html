@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your Nymiz</title>
+
+<style>
+
+:root {
+  color-scheme: light;
+  --ground:#f4f5f8; --surface:#fff; --ink:#262b3d; --muted:#697085; --faint:#7c8294;
+  --line:#e6e8f0; --accent:#6753c7; --accent-soft:#eeebfb; --accent-ink:#fff;
+  --urgent:#ad4c36; --urgent-soft:#fff0e9; --warn:#936a24; --warn-soft:#fff5dd; --ok:#35826d;
+  --hover:#f8f8fc; --shadow:0 3px 16px #29234605;
+  --display:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:var(--display); --mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media(prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme:dark;
+    --ground:#181a22; --surface:#22252f; --ink:#edf0fa; --muted:#abb2c7; --faint:#969eb5;
+    --line:#343847; --accent:#b7a8ff; --accent-soft:#36304e; --accent-ink:#211b36;
+    --urgent:#ffb298; --urgent-soft:#452f2b; --warn:#edcb89; --warn-soft:#3e3626; --ok:#85ceb5;
+    --hover:#2a2d39; --shadow:0 3px 16px #00000012;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --ground:#181a22; --surface:#22252f; --ink:#edf0fa; --muted:#abb2c7; --faint:#969eb5;
+  --line:#343847; --accent:#b7a8ff; --accent-soft:#36304e; --accent-ink:#211b36;
+  --urgent:#ffb298; --urgent-soft:#452f2b; --warn:#edcb89; --warn-soft:#3e3626; --ok:#85ceb5;
+  --hover:#2a2d39; --shadow:0 3px 16px #00000012;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ground);color:var(--ink);font:13px/1.5 var(--body);-webkit-font-smoothing:antialiased;padding:0 20px 20px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+a{color:inherit} button,input{font:inherit;color:inherit} button,a,input{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer} button:disabled{cursor:default;opacity:.5}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+svg.icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+header{padding-top:22px;display:flex;flex-direction:column;gap:22px}
+.topline,.brand,.tools,.heading-row{display:flex;align-items:center}
+.topline,.heading-row{justify-content:space-between;gap:12px}
+.brand{gap:9px;font-size:16px;font-weight:700;letter-spacing:-.4px}
+.brand-mark{display:grid;place-items:center;width:33px;height:33px;border-radius:11px;background:var(--accent);color:var(--accent-ink)}
+.brand-mark svg{width:24px;height:24px;fill:currentColor}
+.tools{gap:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--surface);padding:8px 12px;min-height:34px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.1);color:var(--accent-ink);background:var(--accent)}
+.icon-button{width:34px;padding:7px}
+#gear[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+h1{font:700 30px/1.15 var(--display);letter-spacing:-1.1px;margin:0}
+.eyebrow{font-size:12px;color:var(--muted);margin-top:5px}
+.day-label{font-size:10px;letter-spacing:1px;font-weight:700;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:20px;padding:6px 10px}
+.summary{margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.65}
+.summary b{color:var(--ink);font-weight:600}
+.overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.metric{position:relative;text-align:left;border:1px solid var(--line);border-radius:13px;padding:12px 10px;background:var(--surface);box-shadow:var(--shadow);min-width:0}
+.metric:hover{border-color:var(--accent);background:var(--hover)}
+.metric .icon{width:16px;height:16px;color:var(--accent);display:block;margin-bottom:9px}
+.metric strong{display:block;font-size:23px;line-height:1.1;letter-spacing:-.8px;font-weight:650;font-variant-numeric:tabular-nums}
+.metric span{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.metric[data-view="tasks"] .icon{color:var(--ok)}
+.metric[data-view="mail"] .icon{color:var(--urgent)}
+.metric[data-view="slack"] .icon{color:var(--warn)}
+.navigation{position:sticky;top:0;z-index:5;background:var(--ground);padding:8px 0;margin:-8px 0}
+.view-switch{display:flex;gap:3px;background:var(--line);border:1px solid var(--line);border-radius:11px;padding:3px}
+.view-switch button{flex:1;min-width:0;padding:7px 4px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:11px;font-weight:600}
+.view-switch button[aria-pressed="true"]{color:var(--ink);background:var(--surface);box-shadow:0 1px 4px #0000000c}
+.view-switch button:hover{color:var(--accent)}
+.now{background:var(--accent-soft);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:13px 14px;display:grid;grid-template-columns:1fr auto;gap:3px 12px}
+.now .label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+.now .what{grid-column:1;font-weight:650;font-size:14px;overflow-wrap:anywhere}
+.now .when{grid-column:1;color:var(--muted);font-size:11px}
+.now .join{grid-column:2;grid-row:1/4;align-self:center;text-decoration:none;font-size:12px;font-weight:600;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:8px 13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.grid[data-view]:not([data-view="all"]){grid-template-columns:1fr}
+section.panel{background:var(--surface);border:1px solid var(--line);border-radius:15px;display:flex;flex-direction:column;min-width:0;overflow:hidden;box-shadow:var(--shadow)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px;border-bottom:1px solid var(--line)}
+.ph h2{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:650;letter-spacing:-.2px;margin:0}
+.ph h2 .icon{color:var(--accent);width:17px;height:17px}
+#p-tasks .ph .icon{color:var(--ok)} #p-mail .ph .icon{color:var(--urgent)} #p-slack .ph .icon{color:var(--warn)}
+.count{font-size:10px;color:var(--muted);font-weight:600;background:var(--ground);padding:3px 7px;border-radius:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.count:empty{display:none}
+.sub{font-size:10px;font-weight:650;letter-spacing:.65px;text-transform:uppercase;color:var(--muted);padding:14px 16px 5px}
+.list{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:43px minmax(0,1fr) 24px;gap:4px 10px;padding:14px 16px;border-top:1px solid var(--line);align-items:start}
+.item:first-child{border-top:0}
+.item:hover{background:var(--hover)}
+#p-tasks .item{grid-template-columns:18px minmax(0,1fr) 24px}
+.item.live{background:var(--accent-soft);box-shadow:inset 3px 0 var(--accent)}
+.item.done .t{text-decoration:line-through;color:var(--faint)}
+.item.done .meta,.item.past .t,.item.past .when-col,.item.is-seen .t,.item.is-seen .snip{color:var(--faint)}
+.when-col{font:500 10px/1.7 var(--mono);color:var(--muted);padding-top:1px;font-variant-numeric:tabular-nums}
+.item.live .when-col{color:var(--accent)}
+.t{font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.t a{text-decoration:none} .t a:hover{text-decoration:underline;color:var(--accent)}
+.meta{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:3px}
+.snip{font-size:11px;line-height:1.55;color:var(--muted);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.chip{font:500 10px/1.25 var(--body);padding:3px 6px;border-radius:5px;background:var(--ground);color:var(--muted);text-decoration:none}
+.chip.urgent{background:var(--urgent-soft);color:var(--urgent)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.accent{background:var(--accent-soft);color:var(--accent)}
+a.chip:hover{text-decoration:underline}
+.check{appearance:none;width:18px;height:18px;border:1.5px solid var(--faint);border-radius:6px;margin:1px 0 0;cursor:pointer;display:grid;place-content:center;background:var(--surface)}
+.check:hover{border-color:var(--accent)} .check:checked{background:var(--accent);border-color:var(--accent)}
+.check:checked::after{content:"";width:4px;height:8px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.seen{width:24px;height:24px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--faint);display:grid;place-content:center;padding:0}
+.seen:hover{border-color:var(--ok);color:var(--ok)} .seen.on{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.seenbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:11px;color:var(--muted)}
+.seenbar button,.foot button{background:none;border:0;padding:2px 0;color:var(--accent);font:inherit}
+.state{padding:24px 24px 26px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+.state:before{content:"";display:block;width:26px;height:3px;border-radius:2px;background:var(--accent-soft);margin:0 auto 12px}
+.state.err{color:var(--urgent);background:var(--urgent-soft)} .state b{color:var(--ink);font-weight:600}
+.foot{padding:10px 16px;font-size:10px;color:var(--muted);border-top:1px solid var(--line);background:var(--hover)}
+.task-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--hover)}
+.task-form input,.settings input{font:12px var(--body);color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0}
+.task-form input::placeholder,.settings input::placeholder{color:var(--faint)}
+.task-form input[type=text]{grid-column:1/-1;width:100%}
+.task-form input[type=date]{width:100%;min-height:34px;color:var(--muted)}
+.task-form .btn{min-width:75px}
+.del{background:none;border:0;color:var(--faint);font-size:18px;line-height:1;padding:0;width:24px;height:24px;border-radius:6px}
+.del:hover{color:var(--urgent);background:var(--urgent-soft)}
+.item .acts{display:flex;gap:8px;align-items:center}
+.settings{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:18px;display:grid;gap:18px;box-shadow:var(--shadow)}
+.settings h2{font-size:15px;margin:0;letter-spacing:-.3px}
+.settings h3{font-size:13px;font-weight:600;margin:0 0 10px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.settings>div+div{border-top:1px solid var(--line);padding-top:16px}
+.settings .row{display:flex;gap:8px;flex-wrap:wrap}
+.settings input{flex:1 1 220px;width:100%}
+.settings p{margin:8px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
+.settings code{font-size:10px}
+.page-footer{display:flex;flex-direction:column;align-items:center;gap:5px;padding:3px 0 5px}
+.fresh{font-size:10px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.fresh:before{content:"";height:5px;width:5px;background:var(--faint);border-radius:50%}
+.fresh[data-state="synced"]:before{background:var(--ok)}
+.fresh[data-state="syncing"]:before{background:var(--accent)}
+.note{font-size:10px;color:var(--faint);text-align:center;margin:0;line-height:1.6;max-width:340px}
+.skel{height:10px;border-radius:4px;background:var(--line);margin:14px 16px}.skel.s{width:55%}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+@media(max-width:360px){body{padding-inline:12px}.metric{padding:10px 8px}.brand{font-size:14px}.tools{gap:4px}.view-switch button{font-size:10px}}
+@media(prefers-reduced-motion:no-preference){
+  button,a{transition:background .15s,color .15s,border-color .15s}
+  .skel,.fresh[data-state="syncing"]:before{animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.4}}
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="topline">
+      <div class="brand"><span class="brand-mark"><svg viewBox="0 0 18 18" aria-hidden="true"><path fill-rule="evenodd" d="M3.5 8C3.5 4.96 5.96 2.5 9 2.5S14.5 4.96 14.5 8v7.5c-1.2-2.9-4.3-2.9-5.5 0-1.2-2.9-4.3-2.9-5.5 0ZM6.3 7.7a.8 1.2 0 1 0 1.6 0 .8 1.2 0 1 0-1.6 0Zm3.8 0a.8 1.2 0 1 0 1.6 0 .8 1.2 0 1 0-1.6 0Z"/></svg></span>Your Nymiz</div>
+      <div class="tools">
+        <button class="btn" id="sync" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M5 16a8 8 0 0 0 13 2"/></svg><span id="syncLabel">Sync all</span></button>
+        <button class="btn icon-button" id="gear" type="button" aria-label="Settings" title="Settings" aria-controls="settings" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3h6l1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </div>
+    <div>
+      <div class="heading-row"><h1>Your day, at a glance.</h1></div>
+      <div class="eyebrow" id="dateLine">Today</div>
+      <p class="summary" id="summary">Your daily workspace.</p>
+    </div>
+  </header>
+  <div class="overview" aria-label="Today at a glance">
+    <button class="metric" type="button" data-view="cal" aria-label="Show agenda"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg><strong id="stat-cal">—</strong><span>Events left</span></button>
+    <button class="metric" type="button" data-view="tasks" aria-label="Show tasks"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg><strong id="stat-tasks">—</strong><span>Open tasks</span></button>
+    <button class="metric" type="button" data-view="mail" aria-label="Show email"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg><strong id="stat-mail">—</strong><span>Unread</span></button>
+    <button class="metric" type="button" data-view="slack" aria-label="Show Slack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 6 21M18 3l-2 18M3 9h18M2 15h18"/></svg><strong id="stat-slack">—</strong><span>To review</span></button>
+  </div>
+  <nav class="navigation" aria-label="Dashboard sections">
+    <div class="view-switch">
+      <button type="button" data-view="all" aria-pressed="true" aria-controls="dashboardGrid">Overview</button>
+      <button type="button" data-view="cal" aria-pressed="false" aria-controls="dashboardGrid">Agenda</button>
+      <button type="button" data-view="tasks" aria-pressed="false" aria-controls="dashboardGrid">Tasks</button>
+      <button type="button" data-view="mail" aria-pressed="false" aria-controls="dashboardGrid">Inbox</button>
+      <button type="button" data-view="slack" aria-pressed="false" aria-controls="dashboardGrid">Slack</button>
+    </div>
+  </nav>
+
+  <section class="settings" id="settings" hidden aria-label="Settings">
+    <h2>Connections</h2>
+    <div>
+      <h3>Google <span class="chip" id="g-state"></span></h3>
+      <div class="row" id="g-form">
+        <input id="g-id" aria-label="Google OAuth client ID" placeholder="OAuth client ID" autocomplete="off">
+        <input id="g-secret" aria-label="Google client secret" placeholder="Client secret" type="password" autocomplete="off">
+        <button class="btn" id="g-connect" type="button">Connect Google</button>
+      </div>
+      <div class="row" id="g-on" hidden><button class="btn" id="g-off" type="button">Disconnect</button></div>
+      <p>Calendar and Gmail, read only. Opens your browser to sign in.</p>
+    </div>
+    <div>
+      <h3>Slack <span class="chip" id="s-state"></span></h3>
+      <div class="row" id="s-form">
+        <input id="s-token" aria-label="Slack user token" placeholder="User token (xoxp-…)" type="password" autocomplete="off">
+        <button class="btn" id="s-save" type="button">Save</button>
+      </div>
+      <div class="row" id="s-on" hidden><button class="btn" id="s-off" type="button">Disconnect</button></div>
+      <p>Connect your Slack workspace to see direct messages and mentions. Use a user token with <code>search:read</code> access.</p>
+    </div>
+  </section>
+
+  <div class="now" id="now" hidden></div>
+
+  <main class="grid" id="dashboardGrid" data-view="all" aria-label="Your workspace">
+    <section class="panel" id="p-cal" aria-labelledby="h-cal">
+      <div class="ph"><h2 id="h-cal"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg>Today's agenda</h2><span class="count" id="c-cal"></span></div>
+      <div class="body" id="b-cal"></div>
+      <div class="foot">Google Calendar</div>
+    </section>
+    <section class="panel" id="p-tasks" aria-labelledby="h-tasks">
+      <div class="ph"><h2 id="h-tasks"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>Tasks</h2><span class="count" id="c-tasks"></span></div>
+      <form class="task-form" id="taskForm">
+        <input type="text" id="taskText" placeholder="Add a task or reminder…" aria-label="Task" required>
+        <input type="date" id="taskDue" aria-label="Due date (optional)" title="Due date (optional)">
+        <button class="btn primary" type="submit">+ Add task</button>
+      </form>
+      <div class="body" id="b-tasks"></div>
+      <div class="foot" id="f-tasks">Saved on this Mac</div>
+    </section>
+    <section class="panel" id="p-mail" aria-labelledby="h-mail">
+      <div class="ph"><h2 id="h-mail"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>Unread email</h2><span class="count" id="c-mail"></span></div>
+      <div class="body" id="b-mail"></div>
+      <div class="foot">Gmail · inbox, last 3 days</div>
+    </section>
+    <section class="panel" id="p-slack" aria-labelledby="h-slack">
+      <div class="ph"><h2 id="h-slack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 6 21M18 3l-2 18M3 9h18M2 15h18"/></svg>Slack</h2><span class="count" id="c-slack"></span></div>
+      <div class="sub">Direct messages · today</div>
+      <div class="body" id="b-slackdm"></div>
+      <div class="sub">Channel mentions · last 3 days</div>
+      <div class="body" id="b-slackmen"></div>
+      <div class="foot">Slack</div>
+    </section>
+  </main>
+  <footer class="page-footer">
+    <span class="fresh" id="fresh" role="status"></span>
+    <p class="note">A fresh start, every day. Sync anytime.<br>Tasks and checkmarks stay on this Mac.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const safeUrl = u => (typeof u === "string" && /^https:\/\//.test(u)) ? u : null;
+  const post = m => { try { window.webkit.messageHandlers.nymiz.postMessage(m); } catch(e) {} };
+
+  // ---- per-day "done" marks and Slack "seen" marks (browser storage, best-effort) ----
+  const today = new Date();
+  const DONE_KEY = "radar-done-" + today.toISOString().slice(0,10);
+  let done = {};
+  try { done = JSON.parse(localStorage.getItem(DONE_KEY) || "{}") || {}; } catch(e) { done = {}; }
+  function saveDone(){ try { localStorage.setItem(DONE_KEY, JSON.stringify(done)); } catch(e){} }
+  const SEEN_KEY = "radar-slack-seen";
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || "{}") || {}; } catch(e) { seen = {}; }
+  (function prune(){ const cut = Date.now() - 7*86400000; for (const k in seen) if (seen[k] < cut) delete seen[k]; })();
+  function saveSeen(){ try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch(e){} }
+  const showSeen = { slackdm:false, slackmen:false };
+  const CHECK_SVG = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function seenBtn(key){
+    const on = !!seen[key];
+    return '<button type="button" class="seen'+(on?" on":"")+'" data-seen="'+esc(key)+'" aria-pressed="'+on+'" title="'+(on?"Mark as unseen":"Mark as seen")+'" aria-label="'+(on?"Mark as unseen":"Mark as seen")+'">'+CHECK_SVG+'</button>';
+  }
+  function seenFooter(part, n){
+    if (!n) return "";
+    return '<div class="seenbar"><span>'+n+" seen"+'</span><button type="button" data-toggle-seen="'+part+'">'+(showSeen[part]?"Hide":"Show")+'</button></div>';
+  }
+
+  // ---- time helpers ----
+  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const ymd = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const hhmm = d => d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  const dayMonth = d => d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+  function until(d){
+    const m = Math.round((d.getTime() - Date.now())/60000);
+    if (m <= 0) return "now";
+    if (m < 60) return "in " + m + " min";
+    const h = Math.floor(m/60), r = m%60;
+    return "in " + h + " h" + (r ? " " + r + " min" : "");
+  }
+  const toDate = v => { if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; };
+  $("dateLine").textContent = today.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+
+  // ---- state pushed by the app (see main.swift → push()) ----
+  let A = { google:false, slack:false, syncing:false, tasks:[], sync:null };
+  const S = { cal:null, mail:null, slackdm:null, slackmen:null, err:{} };
+  let ME = "";
+
+  // ---- normalizers: raw Google / Slack API responses ----
+  function normEvents(p){
+    return ((p && p.items) || []).map(ev => {
+      const s = ev.start || {}, en = ev.end || {};
+      const allDay = !!(s.date && !s.dateTime);
+      const start = toDate(s.dateTime || s.date), end = toDate(en.dateTime || en.date);
+      const attendees = ev.attendees || [];
+      const me = attendees.find(a => a && a.self);
+      const rs = me && me.responseStatus;
+      const cd = ev.conferenceData || {};
+      const conf = ev.hangoutLink || (cd.entryPoints||[]).map(x=>x.uri).find(u=>/^https:/.test(u||"")) || null;
+      return {
+        id: ev.id, title: ev.summary || "(untitled)", start, end, allDay,
+        location: ev.location || "", link: safeUrl(ev.htmlLink), conf: safeUrl(conf),
+        needsReply: rs === "needsAction", declined: rs === "declined", cancelled: ev.status === "cancelled",
+        people: attendees.filter(a => a && !a.self && !a.resource).length
+      };
+    }).filter(e => !e.cancelled && !e.declined)
+      .sort((a,b) => (a.allDay - b.allDay) || ((a.start ? a.start.getTime() : 0) - (b.start ? b.start.getTime() : 0)));
+  }
+  function senderName(s){
+    const m = String(s || "").match(/^\s*"?([^"<]+?)"?\s*<[^>]+>\s*$/);
+    return m ? m[1] : String(s || "");
+  }
+  const decoder = document.createElement("textarea");
+  function cleanText(s){
+    decoder.innerHTML = String(s);
+    return decoder.value.replace(/[͏​-‍⁠﻿­]/g, "").replace(/\s{2,}/g, " ").trim();
+  }
+  function normThreads(p){
+    S.mailTotal = (p && p.resultSizeEstimate) || null;
+    return ((p && p.threads) || []).map(t => {
+      const msgs = t.messages || [];
+      const first = msgs[0] || {}, last = msgs[msgs.length-1] || {};
+      const h = (m, n) => (((m.payload && m.payload.headers) || []).find(x => String(x.name).toLowerCase() === n) || {}).value || "";
+      const labels = [].concat(...msgs.map(m => m.labelIds || []));
+      return {
+        id: t.id,
+        subject: cleanText(h(first, "subject") || "(no subject)"),
+        from: senderName(h(last, "from")),
+        snippet: cleanText(last.snippet || ""),
+        date: last.internalDate ? new Date(+last.internalDate) : null,
+        link: "https://mail.google.com/mail/u/0/#inbox/" + encodeURIComponent(t.id),
+        important: labels.includes("IMPORTANT"), starred: labels.includes("STARRED"),
+        count: msgs.length
+      };
+    }).sort((a,b) => (b.important - a.important) || ((b.date ? b.date.getTime() : 0) - (a.date ? a.date.getTime() : 0)));
+  }
+  function slackClean(s){
+    return cleanText(String(s)
+      .replace(/<@U[A-Z0-9]+\|([^>]+)>/g, "@$1")
+      .replace(/<@U[A-Z0-9]+>/g, "@someone")
+      .replace(/<#C[A-Z0-9]+\|([^>]*)>/g, "#$1")
+      .replace(/<(https?:[^|>]+)\|([^>]+)>/g, "$2")
+      .replace(/<(https?:[^>]+)>/g, "$1"));
+  }
+  // search.messages → {messages:{matches:[{channel:{id,name,is_im,is_mpim}, user, username, ts, text, permalink}]}}
+  function normSlack(p){
+    return ((p && p.messages && p.messages.matches) || []).map(m => {
+      const ch = m.channel || {};
+      const group = !!ch.is_mpim;
+      const chName = ch.is_im ? "DM" : group ? String(ch.name||"").replace(/^mpdm-/, "").replace(/-\d+$/, "").split("--").join(", ") : "#" + (ch.name || "");
+      const ts = parseFloat(m.ts);
+      return { chId: ch.id, chName, group, im: !!ch.is_im, fromName: m.username || m.user || "", fromId: m.user,
+               when: isNaN(ts) ? null : new Date(ts*1000), link: safeUrl(m.permalink), text: slackClean(m.text || "") };
+    }).filter(m => m.text && m.fromId !== ME);
+  }
+  const convoName = m => m.im ? m.fromName : m.chName;
+
+  // ---- renderers ----
+  function checkbox(key){
+    return '<input type="checkbox" class="check" data-done="'+esc(key)+'" aria-label="Mark as done"'+(done[key]?" checked":"")+'>';
+  }
+  function renderState(part, html, isErr){
+    $("b-"+part).innerHTML = '<div class="state'+(isErr?" err":"")+'">'+html+'</div>';
+  }
+  // Shared preamble for a synced section: returns true when the caller should stop.
+  function gate(part, connected, label){
+    if (!connected) { renderState(part, "Connect <b>"+label+"</b> in Settings to see this section."); return true; }
+    if (S.err[part] && !S[part]) { renderState(part, esc(S.err[part]), true); return true; }
+    if (!S[part]) { renderState(part, A.syncing ? "Syncing…" : "Not synced yet. Press <b>Sync all</b>."); return true; }
+    return false;
+  }
+  function renderCal(){
+    $("c-cal").textContent = "";
+    if (gate("cal", A.google, "Google")) return;
+    const now = Date.now(), evs = S.cal;
+    $("c-cal").textContent = evs.length ? evs.length + (evs.length === 1 ? " event" : " events") : "";
+    if (!evs.length) { renderState("cal", "Nothing on the calendar today. A clear day for deep work."); return; }
+    $("b-cal").innerHTML = '<ul class="list">' + evs.map(e => {
+      const live = !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
+      const past = !e.allDay && e.end && e.end.getTime() <= now;
+      const key = "cal-" + e.id;
+      const chips = [];
+      if (live) chips.push('<span class="chip accent">In progress</span>');
+      if (e.needsReply) chips.push('<span class="chip urgent">Not answered</span>');
+      if (e.conf) chips.push('<a class="chip accent" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>');
+      const meta = [e.allDay ? "All day" : (e.end ? "until " + hhmm(e.end) : ""), e.people ? e.people + (e.people===1?" person":" people") : "", e.location].filter(Boolean).join(" · ");
+      return '<li class="item'+(live?" live":"")+(past?" past":"")+(done[key]?" done":"")+'">'
+        + '<div class="when-col">'+(e.allDay ? "day" : (e.start ? hhmm(e.start) : "—"))+'</div>'
+        + '<div><div class="t">'+(e.link?'<a href="'+esc(e.link)+'" target="_blank" rel="noopener">'+esc(e.title)+'</a>':esc(e.title))+'</div>'
+        + (meta?'<div class="meta">'+esc(meta)+'</div>':'')
+        + (chips.length?'<div class="chips">'+chips.join("")+'</div>':'')+'</div>'
+        + checkbox(key) + '</li>';
+    }).join("") + '</ul>';
+  }
+  function renderMail(){
+    $("c-mail").textContent = "";
+    if (gate("mail", A.google, "Google")) return;
+    const th = S.mail, total = Math.max(th.length, S.mailTotal || 0);
+    $("c-mail").textContent = th.length ? (total > th.length ? th.length + " of ~" + total : String(th.length)) : "";
+    if (!th.length) { renderState("mail", "Inbox zero. No unread email in your inbox."); return; }
+    $("b-mail").innerHTML = '<ul class="list">' + th.map(t => {
+      const key = "mail-" + t.id;
+      const chips = [];
+      if (t.important) chips.push('<span class="chip warn">Important</span>');
+      if (t.starred) chips.push('<span class="chip accent">Starred</span>');
+      if (t.count > 1) chips.push('<span class="chip">'+t.count+' messages</span>');
+      return '<li class="item'+(done[key]?" done":"")+'">'
+        + '<div class="when-col">'+(t.date ? (t.date >= startOfDay ? hhmm(t.date) : dayMonth(t.date)) : "")+'</div>'
+        + '<div><div class="t"><a href="'+esc(t.link)+'" target="_blank" rel="noopener">'+esc(t.subject)+'</a></div>'
+        + '<div class="meta">'+esc(t.from)+'</div>'
+        + (t.snippet?'<div class="snip">'+esc(t.snippet)+'</div>':'')
+        + (chips.length?'<div class="chips">'+chips.join("")+'</div>':'')+'</div>'
+        + checkbox(key) + '</li>';
+    }).join("") + '</ul>';
+  }
+  function slackKey(prefix, m){ return prefix + "-" + m.chId + "-" + (m.when ? m.when.getTime() : ""); }
+  function latestPerConvo(){
+    const by = new Map();
+    (S.slackdm || []).forEach(m => { const c = by.get(m.chId); if (!c) by.set(m.chId, { last:m, n:1 }); else { c.n++; if (m.when > c.last.when) c.last = m; } });
+    return [...by.values()].sort((a,b) => (b.last.when||0) - (a.last.when||0));
+  }
+  function renderSlackDm(){
+    if (gate("slackdm", A.slack, "Slack")) return;
+    const all = latestPerConvo();
+    if (!all.length) { renderState("slackdm", "No direct messages today."); return; }
+    const nSeen = all.filter(r => seen[slackKey("sdm", r.last)]).length;
+    const rows = showSeen.slackdm ? all : all.filter(r => !seen[slackKey("sdm", r.last)]);
+    $("b-slackdm").innerHTML = (!rows.length ? '<div class="state">All seen. New messages will show up here.</div>' : '<ul class="list">' + rows.map(({last:m, n}) => {
+      const key = slackKey("sdm", m);
+      const chips = [];
+      if (n > 1) chips.push('<span class="chip">'+n+' messages</span>');
+      if (m.group) chips.push('<span class="chip">Group</span>');
+      return '<li class="item'+(seen[key]?" is-seen":"")+'">'
+        + '<div class="when-col">'+(m.when ? (m.when >= startOfDay ? hhmm(m.when) : dayMonth(m.when)) : "")+'</div>'
+        + '<div><div class="t">'+(m.link?'<a href="'+esc(m.link)+'" target="_blank" rel="noopener">'+esc(convoName(m))+'</a>':esc(convoName(m)))+'</div>'
+        + '<div class="snip">'+esc(m.text)+'</div>'
+        + (chips.length?'<div class="chips">'+chips.join("")+'</div>':'')+'</div>'
+        + seenBtn(key) + '</li>';
+    }).join("") + '</ul>') + seenFooter("slackdm", nSeen);
+  }
+  function renderSlackMen(){
+    if (gate("slackmen", A.slack, "Slack")) return;
+    const allM = S.slackmen;
+    if (!allM.length) { renderState("slackmen", "No channel mentions in the last 3 days."); return; }
+    const nSeen = allM.filter(m => seen[slackKey("smen", m)]).length;
+    const ms = showSeen.slackmen ? allM : allM.filter(m => !seen[slackKey("smen", m)]);
+    $("b-slackmen").innerHTML = (!ms.length ? '<div class="state">All mentions seen.</div>' : '<ul class="list">' + ms.map(m => {
+      const key = slackKey("smen", m);
+      const chips = ['<span class="chip">'+esc(m.chName)+'</span>'];
+      if (/\?\s*$/.test(m.text)) chips.unshift('<span class="chip urgent">Question for you</span>');
+      return '<li class="item'+(seen[key]?" is-seen":"")+'">'
+        + '<div class="when-col">'+(m.when ? (m.when >= startOfDay ? hhmm(m.when) : dayMonth(m.when)) : "")+'</div>'
+        + '<div><div class="t">'+(m.link?'<a href="'+esc(m.link)+'" target="_blank" rel="noopener">'+esc(m.fromName)+'</a>':esc(m.fromName))+'</div>'
+        + '<div class="snip">'+esc(m.text)+'</div>'
+        + '<div class="chips">'+chips.join("")+'</div></div>'
+        + seenBtn(key) + '</li>';
+    }).join("") + '</ul>') + seenFooter("slackmen", nSeen);
+  }
+  function slackPending(){
+    const dm = latestPerConvo().filter(r => !seen[slackKey("sdm", r.last)]).length;
+    const men = (S.slackmen || []).filter(m => !seen[slackKey("smen", m)]).length;
+    return dm + men;
+  }
+
+  // ---- tasks: {id, text, due:"YYYY-MM-DD"|"", done, created} saved by the app in tasks.json ----
+  function openTasks(){ return A.tasks.filter(t => !t.done); }
+  function renderTasks(){
+    const todayStr = ymd(new Date());
+    const list = A.tasks.slice().sort((a,b) => (a.done - b.done) || ((a.due||"9999") < (b.due||"9999") ? -1 : (a.due||"9999") > (b.due||"9999") ? 1 : a.created - b.created));
+    const n = openTasks().length;
+    $("c-tasks").textContent = n ? n + " open" : "";
+    const nDone = A.tasks.length - n;
+    $("f-tasks").innerHTML = "Saved on this Mac" + (nDone ? ' · <button type="button" id="clearDone">Clear '+nDone+' done</button>' : "");
+    if (!list.length) { renderState("tasks", "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
+    $("b-tasks").innerHTML = '<ul class="list">' + list.map(t => {
+      let chip = "";
+      if (t.due && !t.done) {
+        if (t.due < todayStr) chip = '<span class="chip urgent">Overdue · '+esc(dayMonth(new Date(t.due+"T12:00")))+'</span>';
+        else if (t.due === todayStr) chip = '<span class="chip accent">Today</span>';
+        else chip = '<span class="chip">'+esc(dayMonth(new Date(t.due+"T12:00")))+'</span>';
+      }
+      return '<li class="item'+(t.done?" done":"")+'">'
+        + '<input type="checkbox" class="check" data-task="'+esc(t.id)+'" aria-label="Done"'+(t.done?" checked":"")+'>'
+        + '<div><div class="t">'+esc(t.text)+'</div>'+(chip?'<div class="chips">'+chip+'</div>':'')+'</div>'
+        + '<button type="button" class="del" data-del="'+esc(t.id)+'" aria-label="Delete task" title="Delete">×</button></li>';
+    }).join("") + '</ul>';
+  }
+  function setTasks(tasks){ A.tasks = tasks; post({ cmd:"saveTasks", tasks }); renderAll(); }
+  $("taskForm").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const text = $("taskText").value.trim();
+    if (!text) return;
+    setTasks(A.tasks.concat({ id: String(Date.now()) + Math.random().toString(36).slice(2,6), text, due: $("taskDue").value || "", done:false, created: Date.now() }));
+    $("taskText").value = ""; $("taskDue").value = ""; $("taskText").focus();
+  });
+
+  function renderNow(){
+    const box = $("now");
+    if (!S.cal) { box.hidden = true; return; }
+    const now = Date.now();
+    const timed = S.cal.filter(e => !e.allDay && e.start && e.end);
+    const live = timed.find(e => e.start.getTime() <= now && e.end.getTime() > now);
+    const next = timed.find(e => e.start.getTime() > now);
+    const e = live || next;
+    if (!e) { box.hidden = true; return; }
+    box.innerHTML = '<span class="label">'+(live ? "Now" : "Next")+'</span>'
+      + '<span class="what">'+esc(e.title)+'</span>'
+      + '<span class="when">'+(live ? "ends " + until(e.end) + " · " + hhmm(e.end) : until(e.start) + " · " + hhmm(e.start))+'</span>'
+      + (e.conf ? '<a class="join" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>' : '');
+    box.hidden = false;
+  }
+  function renderSummary(){
+    const bits = [];
+    if (S.cal) {
+      const left = S.cal.filter(e => e.allDay || !e.end || e.end.getTime() > Date.now()).length;
+      bits.push("<b>"+left+"</b> "+(left===1?"event left":"events left"));
+      const rsvp = S.cal.filter(e => e.needsReply).length;
+      if (rsvp) bits.push("<b>"+rsvp+"</b> not answered");
+    }
+    const nt = openTasks().length;
+    if (nt) bits.push("<b>"+nt+"</b> "+(nt===1?"open task":"open tasks"));
+    if (S.mail) {
+      const open = S.mail.filter(t => !done["mail-"+t.id]).length;
+      bits.push("<b>"+open+"</b> "+(open===1?"unread email":"unread emails"));
+    }
+    if (S.slackdm || S.slackmen) bits.push("<b>"+slackPending()+"</b> to see on Slack");
+    $("summary").innerHTML = bits.length ? bits.join(" · ") : (A.google || A.slack ? "Nothing synced yet." : "Connect Google and Slack in Settings to get started.");
+    const at = A.sync && A.sync.at ? new Date(A.sync.at) : null;
+    $("fresh").textContent = A.syncing ? "Syncing…" : at ? "Synced " + (at >= startOfDay ? "today " : dayMonth(at) + " ") + hhmm(at) : "Never synced";
+    $("sync").disabled = A.syncing || !(A.google || A.slack);
+    $("syncLabel").textContent = A.syncing ? "Syncing…" : "Sync all";
+    if (S.slackdm || S.slackmen) { const n = slackPending(); $("c-slack").textContent = n ? n + " to see" : "all clear"; } else $("c-slack").textContent = "";
+  }
+  // Section shortcuts keep the compact menu-bar panel easy to navigate.
+  let currentView = "all";
+  function selectView(view){
+    if (!["all","cal","tasks","mail","slack"].includes(view)) return;
+    currentView = view;
+    $("dashboardGrid").dataset.view = view;
+    document.querySelectorAll(".view-switch [data-view]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.view === view));
+    });
+    ["cal","tasks","mail","slack"].forEach(part => { $("p-"+part).hidden = view !== "all" && view !== part; });
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+  document.querySelectorAll("[data-view]").forEach(button => {
+    if (button.tagName === "BUTTON") button.addEventListener("click", () => selectView(button.dataset.view));
+  });
+  function renderOverview(){
+    $("stat-cal").textContent = S.cal ? S.cal.filter(e => e.allDay || !e.end || e.end.getTime() > Date.now()).length : "—";
+    $("stat-tasks").textContent = openTasks().length;
+    $("stat-mail").textContent = S.mail ? S.mail.filter(t => !done["mail-"+t.id]).length : "—";
+    $("stat-slack").textContent = S.slackdm || S.slackmen ? slackPending() : "—";
+    $("fresh").dataset.state = A.syncing ? "syncing" : A.sync && A.sync.at ? "synced" : "idle";
+  }
+  function renderSettings(){
+    $("g-state").textContent = A.google ? "Connected" : "Not connected";
+    $("g-state").className = "chip" + (A.google ? " accent" : "");
+    $("g-form").hidden = A.google; $("g-on").hidden = !A.google;
+    $("s-state").textContent = A.slack ? "Connected" : "Not connected";
+    $("s-state").className = "chip" + (A.slack ? " accent" : "");
+    $("s-form").hidden = A.slack; $("s-on").hidden = !A.slack;
+  }
+  function renderAll(){ renderCal(); renderTasks(); renderMail(); renderSlackDm(); renderSlackMen(); renderNow(); renderSummary(); renderOverview(); renderSettings(); }
+
+  // Called by the app with the whole state after load, each sync and each settings change.
+  window.nymizUpdate = state => {
+    A = Object.assign(A, state);
+    const s = A.sync || {};
+    ME = s.me || "";
+    S.err = { cal: s.err && s.err.google, mail: s.err && s.err.google, slackdm: s.err && s.err.slack, slackmen: s.err && s.err.slack };
+    const norm = (f, v) => { try { return v ? f(v) : null; } catch(e) { return []; } };
+    S.cal = norm(normEvents, s.cal); S.mail = norm(normThreads, s.mail);
+    S.slackdm = norm(normSlack, s.slackDm); S.slackmen = norm(normSlack, s.slackMen);
+    if (!A.google && !A.slack) { $("settings").hidden = false; $("gear").setAttribute("aria-expanded","true"); }
+    renderAll();
+  };
+
+  // ---- events ----
+  $("sync").addEventListener("click", () => post({ cmd:"sync" }));
+  $("gear").addEventListener("click", () => { const s = $("settings"); s.hidden = !s.hidden; $("gear").setAttribute("aria-expanded", String(!s.hidden)); });
+  $("g-connect").addEventListener("click", () => {
+    const clientId = $("g-id").value.trim(), clientSecret = $("g-secret").value.trim();
+    if (!clientId || !clientSecret) { $("g-id").focus(); return; }
+    post({ cmd:"connectGoogle", clientId, clientSecret });
+  });
+  $("g-off").addEventListener("click", () => post({ cmd:"disconnect", which:"google" }));
+  $("s-save").addEventListener("click", () => { const token = $("s-token").value.trim(); if (token) { post({ cmd:"setSlackToken", token }); $("s-token").value = ""; } });
+  $("s-off").addEventListener("click", () => post({ cmd:"disconnect", which:"slack" }));
+
+  document.addEventListener("click", ev => {
+    const t = ev.target.closest && ev.target.closest("[data-seen],[data-toggle-seen],[data-del],#clearDone");
+    if (!t) return;
+    if (t.id === "clearDone") { setTasks(A.tasks.filter(x => !x.done)); return; }
+    if (t.dataset.del) { setTasks(A.tasks.filter(x => x.id !== t.dataset.del)); return; }
+    if (t.dataset.toggleSeen) { showSeen[t.dataset.toggleSeen] = !showSeen[t.dataset.toggleSeen]; renderAll(); return; }
+    const k = t.dataset.seen;
+    if (seen[k]) { delete seen[k]; saveSeen(); renderAll(); return; }
+    seen[k] = Date.now(); saveSeen();
+    t.classList.add("on"); t.setAttribute("aria-pressed","true");   // green check for a beat, then drop the row
+    setTimeout(renderAll, showSeen.slackdm || showSeen.slackmen ? 0 : 450);
+  });
+  document.addEventListener("change", ev => {
+    const d = ev.target && ev.target.dataset;
+    if (d && d.task) { setTasks(A.tasks.map(x => x.id === d.task ? Object.assign({}, x, { done: ev.target.checked }) : x)); return; }
+    if (!d || !d.done) return;
+    if (ev.target.checked) done[d.done] = 1; else delete done[d.done];
+    saveDone(); renderAll();
+  });
+
+  renderAll();
+  post({ cmd:"ready" });                 // the app answers with nymizUpdate(state)
+  setInterval(renderAll, 60000);         // keep "now", relative times and overdue chips fresh
+})();
+</script>
+</body>
+</html>

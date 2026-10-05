@@ -21,10 +21,15 @@ Todo se construyó con Claude (Cowork) el 23 de septiembre de 2026.
 | 1.0 (icono) | El icono pasa a ser un fantasma (dibujado por Claude; no es el logo oficial de Nymiz). |
 | 1.1 | Indicador de carga, mensajes de error, aviso de página vacía, opción Diagnostics… e inspector web. El diagnóstico mostró el fallo del login con Google. |
 | 1.2 | Login con Google arreglado: su ventana emergente se abre como ventana real, el panel no se cierra mientras inicias sesión y vuelve solo al panel al terminar. |
+| 2.0 (5/10/2026) | **Desacoplada de claude.ai.** El panel va dentro de la app (`dashboard/index.html`). La app usa OAuth propio de Google (Calendar y Gmail, solo lectura) y un token de usuario de Slack, guardados en el llavero. Sincroniza una vez al día y con **Sync all**. Nueva sección **Tasks** (tareas y recordatorios con fecha opcional, en `tasks.json`). Quitados el código muerto de Drive, el login de claude.ai y Diagnostics. |
+
+| 2.1 (5/10/2026) | Rediseño del panel: identidad con fantasma, paleta lavanda y modo oscuro, tipografía del sistema sin descargas, contadores y navegación por Overview, Agenda, Tasks, Inbox y Slack. Tarjetas, formularios y estados vacíos más claros para la ventana de 460 px. |
 
 ## Decisiones
 
-- **La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.
+- **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.
 - **Drive:** se retiró la sección para reducir el alcance de la integración.
 - **Marcas de visto y hecho en `localStorage`**, no en la base de datos del artifact: suficiente para un solo usuario en un solo navegador y sin configuración extra.
 - **Interfaz en inglés**, documentación en español.
+- **v2: sincronización diaria en vez de cada 5 minutos**, a petición tuya. El botón Sync all cubre el resto.
+- **v2: la app hace las llamadas y el panel solo pinta.** Así los tokens no pasan nunca por JavaScript y no hay problemas de CORS.

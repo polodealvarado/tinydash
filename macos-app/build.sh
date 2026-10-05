@@ -15,9 +15,10 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 echo "Compiling…"
 swiftc -O main.swift -o "$APP/Contents/MacOS/YourNymiz" \
-  -framework Cocoa -framework WebKit -framework ServiceManagement
+  -framework Cocoa -framework WebKit -framework ServiceManagement -framework Network
 
 cp Info.plist "$APP/Contents/Info.plist"
+cp ../dashboard/index.html "$APP/Contents/Resources/index.html"
 codesign --force --sign - "$APP" >/dev/null 2>&1 || true
 
 echo "Installing in /Applications…"
@@ -25,4 +26,4 @@ pkill -x YourNymiz 2>/dev/null || true
 rm -rf "/Applications/$APP"
 ditto "$APP" "/Applications/$APP"
 open "/Applications/$APP"
-echo "Done. Look for the N icon in your menu bar."
+echo "Done. Look for the ghost icon in your menu bar."

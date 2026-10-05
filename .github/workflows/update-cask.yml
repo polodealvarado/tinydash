@@ -1,0 +1,40 @@
+name: Update cask
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-cask
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - name: Verify release archive and update cask
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/update-cask.py
+      - name: Commit version update
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Casks/tinydash.rb; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Casks/tinydash.rb
+          git commit -m 'chore: update Tinydash cask'
+          git pull --rebase origin main
+          git push origin HEAD:main

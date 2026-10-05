@@ -3,9 +3,9 @@ name: Build
 on:
   push:
     branches: [main]
-    paths: ["macos-app/**", "dashboard/**", "scripts/**", ".github/workflows/**"]
+    paths: ["macos-app/**", "dashboard/**", "scripts/package.sh", ".github/workflows/**"]
   pull_request:
-    paths: ["macos-app/**", "dashboard/**", "scripts/**", ".github/workflows/**"]
+    paths: ["macos-app/**", "dashboard/**", "scripts/package.sh", ".github/workflows/**"]
 
 permissions:
   contents: read

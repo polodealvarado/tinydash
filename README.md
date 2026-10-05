@@ -35,14 +35,18 @@ Tinydash brings your daily workspace into a small panel in the macOS menu bar. C
 ### Homebrew
 
 ```sh
+brew tap --custom-remote polodealvarado/tinydash https://github.com/polodealvarado/tinydash.git
 brew install --cask polodealvarado/tinydash/tinydash
 ```
+
+The app and Homebrew cask are maintained in this repository. The tap command also migrates an existing Tinydash tap to this source.
 
 Installs the universal app for **Apple Silicon and Intel Macs** running **macOS 12 or later**. Open Tinydash from Applications, then click the pencil in your menu bar.
 
 To update or uninstall:
 
 ```sh
+brew update
 brew upgrade --cask polodealvarado/tinydash/tinydash
 brew uninstall --cask polodealvarado/tinydash/tinydash
 ```
@@ -109,6 +113,9 @@ The app bundle is written to `macos-app/Tinydash.app`. Generated build files are
 
 ```text
 tinydash/
+├── Casks/tinydash.rb        Homebrew installation definition
+├── scripts/                 Release packaging and cask updates
+├── .github/workflows/       Build and release automation
 ├── assets/                  Pencil artwork and project logo
 ├── dashboard/
 │   └── index.html           Dashboard interface and interactions

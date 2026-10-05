@@ -1,6 +1,6 @@
 # Releasing Tinydash
 
-Tinydash is distributed as a universal macOS app through GitHub Releases and the [Homebrew tap](https://github.com/polodealvarado/homebrew-tinydash).
+Tinydash is distributed as a universal macOS app through GitHub Releases and the [Homebrew cask](../Casks/tinydash.rb) in this same repository.
 
 GitHub Actions must be enabled for the account before the workflows can run. The first Homebrew release, `v2.3.0`, was built and verified locally because Actions was disabled for the maintainer account.
 
@@ -19,7 +19,9 @@ The **Release** workflow builds both `arm64` and `x86_64` slices using the minim
 
 Published archives must remain immutable: create a new version for corrections instead of replacing an existing download. Homebrew pins the archive checksum.
 
-The tap's **Update cask** workflow checks for a new release daily. Run it manually after publishing if the cask should update immediately. It downloads the ZIP, verifies its published checksum, and commits the new version to the tap. No token shared between repositories is needed.
+After publishing, **Release** calls the reusable **Update cask** workflow. It downloads the latest stable ZIP, verifies its published checksum, and commits only `Casks/tinydash.rb` to `main`. The updater also handles releases published manually and can be rerun with **Run workflow**. Updates are serialized; a failed update can be retried without rebuilding or replacing the release archive.
+
+The explicit workflow call is necessary because a release created with `GITHUB_TOKEN` does not trigger another workflow through a release event. All automation uses this repository's token with job-scoped `contents: write`; no cross-repository token is required. If branch protection prevents the bot from pushing, update the cask through a reviewed pull request instead of weakening the branch rule.
 
 ## Build a package locally
 
@@ -40,7 +42,7 @@ gh release upload v2.3.0 dist/Tinydash-2.3.0-universal.zip dist/Tinydash-2.3.0-u
 gh release edit v2.3.0 --draft=false
 ```
 
-Use the new version number throughout; do not overwrite an existing release. In a checkout of `homebrew-tinydash`, update the cask manually:
+Use the new version number throughout; do not overwrite an existing release. From the root of this repository, update the cask manually:
 
 ```sh
 python3 scripts/update-cask.py
@@ -66,10 +68,22 @@ This enables the hardened runtime, submits the app for notarization, staples the
 ## Validate a Homebrew release
 
 ```sh
-brew tap polodealvarado/tinydash
+brew tap --custom-remote polodealvarado/tinydash https://github.com/polodealvarado/tinydash.git
 brew style --cask polodealvarado/tinydash/tinydash
 brew fetch --cask polodealvarado/tinydash/tinydash
 brew install --cask polodealvarado/tinydash/tinydash
 ```
 
 Use a clean Mac or an isolated app directory for installation checks when a manually installed copy already exists. Never remove user data as part of a release check.
+
+## Migrate from the former tap
+
+The former `homebrew-tinydash` repository has been retired. App source, release scripts, and the cask are maintained here. Existing installations keep the same cask name and app identity.
+
+```sh
+brew tap --custom-remote polodealvarado/tinydash https://github.com/polodealvarado/tinydash.git
+brew update
+brew info --cask polodealvarado/tinydash/tinydash
+```
+
+This changes the tap's source without uninstalling the app or removing saved data. Use the explicit repository URL for new installations too; omitting it makes Homebrew look for the old `homebrew-` repository by convention.

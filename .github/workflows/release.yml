@@ -40,3 +40,9 @@ jobs:
             --title "Tinydash $RELEASE_TAG" --notes-file .github/release-notes.md
           gh release upload "$RELEASE_TAG" dist/*.zip dist/*.sha256
           gh release edit "$RELEASE_TAG" --draft=false
+
+  update-cask:
+    needs: release
+    permissions:
+      contents: write
+    uses: ./.github/workflows/update-cask.yml

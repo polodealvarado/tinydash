@@ -4,7 +4,7 @@ Una sola app de macOS. Ya no depende de claude.ai: la app pide los datos a Googl
 
 ```mermaid
 flowchart LR
-  icon["Icono del fantasma<br/>(NSStatusItem)"] --> pop["Ventana flotante<br/>(NSPopover + WKWebView)"]
+  icon["Icono del lápiz<br/>(NSStatusItem)"] --> pop["Ventana flotante<br/>(NSPopover + WKWebView)"]
   pop -- "carga Resources/index.html" --> page["Panel<br/>dashboard/index.html"]
   page -- "postMessage {cmd}" --> app["main.swift"]
   app -- "nymizUpdate(state)" --> page
@@ -34,3 +34,9 @@ flowchart LR
 ## Sincronización
 
 Una vez al día (ver `docs/CONFIGURACION.md`) y con **Sync all**. Cada sincronización sustituye entera la anterior: si una fuente falla, su sección muestra el error en vez de datos viejos. Si la página se cargó otro día, la app la recarga al sincronizar para que "hoy" avance.
+
+## Identidad de Tinydash
+
+Desde v2.2, `Tinydash.app` usa un lápiz como icono en la barra y en el panel. `PencilIcon.swift` comparte el dibujo entre la imagen de la barra y el icono de la app generado por `generate-icon.swift`.
+
+Se mantienen `com.nymiz.yournymiz`, la carpeta `Application Support/YourNymiz`, los nombres del puente y las claves de `localStorage` para conservar la compatibilidad con Your Nymiz.

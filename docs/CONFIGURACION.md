@@ -4,7 +4,7 @@ Desde la v2.0 la app lee Google Calendar, Gmail y Slack directamente, sin claude
 
 ## Google (Calendar + Gmail)
 
-1. Entra en https://console.cloud.google.com con tu cuenta de Google y crea un proyecto (p. ej. "Your Nymiz").
+1. Entra en https://console.cloud.google.com con tu cuenta de Google y crea un proyecto (p. ej. "Tinydash").
 2. **APIs y servicios → Biblioteca:** activa **Gmail API** y **Google Calendar API**.
 3. **Google Auth Platform → Público (Audience):** tipo de usuario **Interno**. Así no hace falta la verificación de Google, aunque `gmail.readonly` sea un permiso restringido.
 4. **Acceso a datos (Data access):** añade los permisos `.../auth/calendar.readonly` y `.../auth/gmail.readonly`.
@@ -34,4 +34,4 @@ Si Workspace no te deja crear el proyecto o el cliente, lo tiene que permitir un
 ## Sincronización
 
 - Automática una vez al día: al abrir la app y, si no se ha sincronizado hoy, en la primera comprobación después de las 07:00. Comprueba cada 15 minutos y al despertar el Mac. Para cambiarlo, toca `SYNC_HOUR` y `AUTO_CHECK` en `main.swift`.
-- Manual: el botón **Sync all** del panel, o clic derecho en el fantasma → **Sync now**.
+- Manual: el botón **Sync all** del panel, o clic derecho en el lápiz → **Sync now**.

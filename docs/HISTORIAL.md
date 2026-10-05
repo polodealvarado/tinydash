@@ -25,6 +25,8 @@ Todo se construyó con Claude (Cowork) el 23 de septiembre de 2026.
 
 | 2.1 (5/10/2026) | Rediseño del panel: identidad con fantasma, paleta lavanda y modo oscuro, tipografía del sistema sin descargas, contadores y navegación por Overview, Agenda, Tasks, Inbox y Slack. Tarjetas, formularios y estados vacíos más claros para la ventana de 460 px. |
 
+| 2.2 (5/10/2026) | Renombrada a **Tinydash**, con un lápiz en el panel, en la barra de menús y como icono de la app. Repositorio `polodealvarado/tinydash`. Identificadores de almacenamiento y llavero conservados para mantener las conexiones y tareas. |
+
 ## Decisiones
 
 - **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.

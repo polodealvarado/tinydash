@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Your Nymiz</title>
+<title>Tinydash</title>
 
 <style>
 
@@ -45,7 +45,7 @@ header{padding-top:22px;display:flex;flex-direction:column;gap:22px}
 .topline,.heading-row{justify-content:space-between;gap:12px}
 .brand{gap:9px;font-size:16px;font-weight:700;letter-spacing:-.4px}
 .brand-mark{display:grid;place-items:center;width:33px;height:33px;border-radius:11px;background:var(--accent);color:var(--accent-ink)}
-.brand-mark svg{width:24px;height:24px;fill:currentColor}
+.brand-mark svg{width:23px;height:23px;fill:none}
 .tools{gap:6px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--surface);padding:8px 12px;min-height:34px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap}
 .btn:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -155,7 +155,7 @@ a.chip:hover{text-decoration:underline}
 <div class="wrap">
   <header>
     <div class="topline">
-      <div class="brand"><span class="brand-mark"><svg viewBox="0 0 18 18" aria-hidden="true"><path fill-rule="evenodd" d="M3.5 8C3.5 4.96 5.96 2.5 9 2.5S14.5 4.96 14.5 8v7.5c-1.2-2.9-4.3-2.9-5.5 0-1.2-2.9-4.3-2.9-5.5 0ZM6.3 7.7a.8 1.2 0 1 0 1.6 0 .8 1.2 0 1 0-1.6 0Zm3.8 0a.8 1.2 0 1 0 1.6 0 .8 1.2 0 1 0-1.6 0Z"/></svg></span>Your Nymiz</div>
+      <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 1.2-4.8L16 4.4a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8 4 20Z"/><path d="m13.8 6.6 3.6 3.6M5.2 15.2l3.6 3.6"/></svg></span>Tinydash</div>
       <div class="tools">
         <button class="btn" id="sync" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M5 16a8 8 0 0 0 13 2"/></svg><span id="syncLabel">Sync all</span></button>
         <button class="btn icon-button" id="gear" type="button" aria-label="Settings" title="Settings" aria-controls="settings" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3h6l1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -539,10 +539,8 @@ a.chip:hover{text-decoration:underline}
     if (S.slackdm || S.slackmen) { const n = slackPending(); $("c-slack").textContent = n ? n + " to see" : "all clear"; } else $("c-slack").textContent = "";
   }
   // Section shortcuts keep the compact menu-bar panel easy to navigate.
-  let currentView = "all";
   function selectView(view){
     if (!["all","cal","tasks","mail","slack"].includes(view)) return;
-    currentView = view;
     $("dashboardGrid").dataset.view = view;
     document.querySelectorAll(".view-switch [data-view]").forEach(button => {
       button.setAttribute("aria-pressed", String(button.dataset.view === view));

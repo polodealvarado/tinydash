@@ -1,4 +1,4 @@
-// Your Nymiz — menu bar app for macOS
+// Tinydash — menu bar app for macOS
 // Left-click the icon: today's agenda, tasks, unread email and Slack in a popover.
 // Right-click: Sync now · Open at login · Quit.
 // Talks to Google and Slack directly (no claude.ai). Secrets live in the Keychain;
@@ -19,6 +19,7 @@ let GMAIL_QUERY = "in:inbox is:unread newer_than:3d -category:promotions -catego
 
 // MARK: storage
 
+// Keep the legacy storage and Keychain identifiers so upgrades retain existing data.
 let dataDir: URL = {
     let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("YourNymiz")
     try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
@@ -122,7 +123,7 @@ func loopbackCode(state: String, authURL: @escaping (String) -> URL) async throw
                 let items = URLComponents(string: "http://x" + path)?.queryItems ?? []
                 func v(_ n: String) -> String? { items.first { $0.name == n }?.value }
                 let code = v("state") == state ? v("code") : nil
-                let body = code != nil ? "Signed in. You can close this tab and go back to Your Nymiz."
+                let body = code != nil ? "Signed in. You can close this tab and go back to Tinydash."
                                        : "Sign-in failed (\(v("error") ?? "unexpected reply")). Close this tab and try again."
                 let resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n" + body
                 conn.send(content: Data(resp.utf8), completion: .contentProcessed { _ in conn.cancel() })
@@ -189,7 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             button.image = makeStatusIcon()
-            button.toolTip = "Your Nymiz"
+            button.toolTip = "Tinydash"
             button.target = self
             button.action = #selector(statusClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -387,7 +388,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             menu.addItem(login)
         }
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Your Nymiz", action: #selector(quit), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Tinydash", action: #selector(quit), keyEquivalent: "q")
         menu.items.forEach { $0.target = self }
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
@@ -403,7 +404,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             if SMAppService.mainApp.status == .enabled { try SMAppService.mainApp.unregister() }
             else { try SMAppService.mainApp.register() }
         } catch {
-            alert("Couldn't change Open at login", "Move Your Nymiz.app to the Applications folder and try again.\n\n\(error.localizedDescription)")
+            alert("Couldn't change Open at login", "Move Tinydash.app to the Applications folder and try again.\n\n\(error.localizedDescription)")
         }
     }
 
@@ -453,27 +454,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { loadPage() }
 }
 
-// Template icon: a ghost with two eye holes. macOS tints it for light/dark menu bars.
+// Template pencil icon, tinted by macOS for the current menu bar appearance.
 func makeStatusIcon() -> NSImage {
-    let image = NSImage(size: NSSize(width: 18, height: 18), flipped: true) { _ in   // y grows downward
-        let p = NSBezierPath()
-        p.move(to: NSPoint(x: 3.5, y: 8))
-        // domed head
-        p.curve(to: NSPoint(x: 9, y: 2.5), controlPoint1: NSPoint(x: 3.5, y: 4.96), controlPoint2: NSPoint(x: 5.96, y: 2.5))
-        p.curve(to: NSPoint(x: 14.5, y: 8), controlPoint1: NSPoint(x: 12.04, y: 2.5), controlPoint2: NSPoint(x: 14.5, y: 4.96))
-        // right side, then a wavy hem with three tails
-        p.line(to: NSPoint(x: 14.5, y: 15.5))
-        p.curve(to: NSPoint(x: 9, y: 15.5), controlPoint1: NSPoint(x: 13.3, y: 12.6), controlPoint2: NSPoint(x: 10.2, y: 12.6))
-        p.curve(to: NSPoint(x: 3.5, y: 15.5), controlPoint1: NSPoint(x: 7.8, y: 12.6), controlPoint2: NSPoint(x: 4.7, y: 12.6))
-        p.close()
-        // eyes (cut out of the body)
-        p.appendOval(in: NSRect(x: 6.3, y: 6.5, width: 1.6, height: 2.4))
-        p.appendOval(in: NSRect(x: 10.1, y: 6.5, width: 1.6, height: 2.4))
-        p.windingRule = .evenOdd
-        NSColor.black.setFill()
-        p.fill()
-        return true
-    }
+    let image = makePencilImage(size: 18, background: false)
     image.isTemplate = true
     return image
 }

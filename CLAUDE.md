@@ -1,4 +1,4 @@
-# Your Nymiz
+# Tinydash
 
 Personal "what needs my attention today" dashboard for the user, as a macOS menu bar app. Since v2.0 it is **standalone**: no claude.ai, no MCP connectors. The app calls Google and Slack directly.
 
@@ -12,7 +12,7 @@ Talk to the user in Spanish. Dashboard UI copy stays in English.
 |---|---|
 | `dashboard/index.html` | The panel. Standalone HTML/CSS/JS, no libraries. `build.sh` copies it to `Contents/Resources/index.html`. |
 | `macos-app/main.swift` | Menu bar app (AppKit + WKWebView + Network + CryptoKit). OAuth, API calls, storage, daily sync. |
-| `assets/` | Ghost icon source (`ghost.svg`). |
+| `assets/` | Pencil icon source (`pencil.svg`). |
 
 The old claude.ai artifact (https://example.com/dashboard) still exists but is no longer used by the app. Its source is in git history as `dashboard/your-nymiz.html`.
 
@@ -31,9 +31,14 @@ The old claude.ai artifact (https://example.com/dashboard) still exists but is n
 - Per-viewer ticks/seen marks are still in `localStorage` (`radar-done-<date>`, `radar-slack-seen`), wrapped in try/catch.
 - Theme tokens on `:root` with a dark palette under `prefers-color-scheme`. `[hidden]{display:none!important}` is required because panels set `display`.
 
+## Branding and compatibility
+
+- Public name: **Tinydash**. The menu bar and dashboard use a pencil, drawn in `macos-app/PencilIcon.swift` and `assets/pencil.svg`.
+- Keep the legacy bundle ID, Keychain service, Application Support directory and JavaScript bridge names to preserve existing installations.
+
 ## Build
 
-`cd macos-app && ./build.sh`: compiles with `swiftc`, bundles `index.html`, signs ad hoc, installs to `/Applications` and launches. Bump `CFBundleShortVersionString`/`CFBundleVersion` in `Info.plist` for each release. Ad-hoc signing means a Keychain prompt after each rebuild.
+`cd macos-app && ./build.sh` (or `./build.sh --build-only`): generates the app icon, compiles with `swiftc`, bundles `index.html`, signs ad hoc, installs to `/Applications` and launches. Bump `CFBundleShortVersionString`/`CFBundleVersion` in `Info.plist` for each release. Ad-hoc signing means a Keychain prompt after each rebuild.
 
 ## Status / known issues
 

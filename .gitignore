@@ -1,3 +1,13 @@
 # macOS build output
-macos-app/Your Nymiz.app/
+macos-app/*.app/
+macos-app/.build/
 .DS_Store
+
+# Local credentials and personal state
+.env
+.env.*
+!.env.example
+credentials*.json
+client_secret*.json
+tasks.json
+sync.json

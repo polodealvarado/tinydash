@@ -32,12 +32,26 @@ Tinydash brings your daily workspace into a small panel in the macOS menu bar. C
 
 ## Installation
 
-### Requirements
+### Homebrew
 
-- A Mac with Apple's Command Line Tools, including the Swift compiler.
-- Your own Google OAuth credentials and Slack user token to enable those connections. Local tasks work independently.
+```sh
+brew install --cask polodealvarado/tinydash/tinydash
+```
 
-Install the Command Line Tools if needed:
+Installs the universal app for **Apple Silicon and Intel Macs** running **macOS 12 or later**. Open Tinydash from Applications, then click the pencil in your menu bar.
+
+To update or uninstall:
+
+```sh
+brew upgrade --cask polodealvarado/tinydash/tinydash
+brew uninstall --cask polodealvarado/tinydash/tinydash
+```
+
+**Signing status:** current downloads are signed ad hoc and are not notarized by Apple. macOS Gatekeeper may block first launch. The Homebrew installer does not change security settings. You can also build Tinydash from source on your own Mac.
+
+### Build from source
+
+Install Apple's Command Line Tools if needed:
 
 ```sh
 xcode-select --install
@@ -51,7 +65,7 @@ cd tinydash/macos-app
 ./build.sh
 ```
 
-The script builds **Tinydash.app**, installs it in `/Applications`, and launches it. Click the pencil in your menu bar to open the dashboard.
+The script builds **Tinydash.app**, installs it in `/Applications`, and launches it. Google and Slack require your own credentials; local tasks work independently.
 
 ## Connections
 
@@ -87,6 +101,8 @@ From the repository root:
 ./macos-app/build.sh --build-only
 ```
 
+Add `--universal` to build for both Apple Silicon and Intel.
+
 The app bundle is written to `macos-app/Tinydash.app`. Generated build files are excluded from version control.
 
 ### Project structure
@@ -104,6 +120,10 @@ tinydash/
 │   └── build.sh             Build and installation script
 └── docs/                    Technical documentation
 ```
+
+### Release packages
+
+See the [release guide](docs/RELEASING.md) for versioning, GitHub Releases, Homebrew updates, and signing.
 
 ## Feedback
 

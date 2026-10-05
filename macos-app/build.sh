@@ -1,12 +1,17 @@
 #!/bin/bash
-# Build Tinydash; --build-only skips installation and launch.
+# Build Tinydash; --build-only skips installation; --universal includes both Mac architectures.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-if [[ $# -gt 1 || (${1:-} != "" && ${1:-} != "--build-only") ]]; then
-  echo "Usage: ./build.sh [--build-only]" >&2
-  exit 1
-fi
+BUILD_ONLY=false
+UNIVERSAL=false
+for arg in "$@"; do
+  case "$arg" in
+    --build-only) BUILD_ONLY=true ;;
+    --universal) UNIVERSAL=true ;;
+    *) echo "Usage: ./build.sh [--build-only] [--universal]" >&2; exit 1 ;;
+  esac
+done
 if ! command -v swiftc >/dev/null 2>&1; then
   echo "Run xcode-select --install, then run this script again." >&2
   exit 1
@@ -25,15 +30,31 @@ swiftc PencilIcon.swift generate-icon.swift -o "$STAGING/generate-icon"
 iconutil -c icns "$STAGING/AppIcon.iconset" -o "$BUNDLE/Contents/Resources/AppIcon.icns"
 
 echo "Compiling Tinydash…"
-swiftc -O main.swift PencilIcon.swift -o "$BUNDLE/Contents/MacOS/Tinydash" \
-  -framework Cocoa -framework WebKit -framework ServiceManagement -framework Network
+MIN_MACOS=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' Info.plist)
+ARCHS=("$(uname -m)")
+if $UNIVERSAL; then ARCHS=(arm64 x86_64); fi
+for arch in "${ARCHS[@]}"; do
+  swiftc -O -target "${arch}-apple-macosx${MIN_MACOS}" main.swift PencilIcon.swift \
+    -o "$STAGING/Tinydash-$arch" \
+    -framework Cocoa -framework WebKit -framework ServiceManagement -framework Network
+done
+if $UNIVERSAL; then
+  lipo -create "$STAGING/Tinydash-arm64" "$STAGING/Tinydash-x86_64" \
+    -output "$BUNDLE/Contents/MacOS/Tinydash"
+else
+  cp "$STAGING/Tinydash-${ARCHS[0]}" "$BUNDLE/Contents/MacOS/Tinydash"
+fi
 cp Info.plist "$BUNDLE/Contents/Info.plist"
 cp ../dashboard/index.html "$BUNDLE/Contents/Resources/index.html"
-codesign --force --sign - "$BUNDLE"
+if [[ -n ${TINYDASH_SIGNING_IDENTITY:-} ]]; then
+  codesign --force --options runtime --timestamp --sign "$TINYDASH_SIGNING_IDENTITY" "$BUNDLE"
+else
+  codesign --force --sign - "$BUNDLE"
+fi
 codesign --verify --deep --strict "$BUNDLE"
 ditto "$BUNDLE" "$APP"
 
-if [[ ${1:-} == "--build-only" ]]; then
+if $BUILD_ONLY; then
   echo "Built: $PWD/$APP"
   exit 0
 fi

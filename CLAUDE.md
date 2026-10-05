@@ -1,6 +1,6 @@
 # Tinydash
 
-Personal "what needs my attention today" dashboard for the user, as a macOS menu bar app. Since v2.0 it is **standalone**: no claude.ai, no MCP connectors. The app calls Google and Slack directly.
+A macOS menu bar dashboard for calendar, tasks, email and Slack. Since v2.0 it is **standalone**: the app calls Google and Slack directly.
 
 Human docs (Spanish) live in `docs/`: `ARQUITECTURA.md` (architecture, bridge, API calls), `CONFIGURACION.md` (Google Cloud + Slack app setup, where data lives, sync schedule), `SOLUCION-DE-PROBLEMAS.md`, `HISTORIAL.md` (versions + decisions), `ROADMAP.md`. Keep them in sync when behavior changes; add a `HISTORIAL.md` row for every version bump.
 
@@ -14,13 +14,13 @@ Talk to the user in Spanish. Dashboard UI copy stays in English.
 | `macos-app/main.swift` | Menu bar app (AppKit + WKWebView + Network + CryptoKit). OAuth, API calls, storage, daily sync. |
 | `assets/` | Pencil icon source (`pencil.svg`). |
 
-The old claude.ai artifact (https://example.com/dashboard) still exists but is no longer used by the app. Its source is in git history as `dashboard/your-nymiz.html`.
+Historical versions used a hosted panel. The current app bundles its panel locally.
 
 ## Bridge
 
 - Page → app: `window.webkit.messageHandlers.nymiz.postMessage({cmd})`, where `cmd` is `ready | sync | saveTasks | connectGoogle | setSlackToken | disconnect`.
 - App → page: `window.nymizUpdate({google, slack, syncing, tasks, sync})`. `sync` holds **raw** API responses (`cal` = Calendar `events.list`, `mail` = `{threads:[threads.get metadata], resultSizeEstimate}`, `slackDm`/`slackMen` = `search.messages`) plus `me` and `err.{google,slack}`. The page normalizes them (`normEvents`, `normThreads`, `normSlack`).
-- Tokens never reach JS. Secrets are one Keychain item (service `com.nymiz.yournymiz`, account `secrets`). `tasks.json` and `sync.json` live in `~/Library/Application Support/YourNymiz/`.
+- Credentials entered in Settings pass through the local JavaScript bridge to native code. Saved secrets are never included in dashboard state. Secrets are one Keychain item (service `com.nymiz.yournymiz`, account `secrets`). `tasks.json` and `sync.json` live in `~/Library/Application Support/YourNymiz/`.
 
 ## Behavior
 

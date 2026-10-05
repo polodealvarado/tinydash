@@ -9,6 +9,16 @@ macos-app/.build/
 !.env.example
 credentials*.json
 client_secret*.json
+*client_secret*.json
+secrets/
+.secrets/
+secrets*.json
+token.json
+tokens.json
+*.pem
+*.key
+*.p12
+*.pfx
 tasks.json
 sync.json
 

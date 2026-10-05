@@ -2,6 +2,8 @@
 
 Tinydash is distributed as a universal macOS app through GitHub Releases and the [Homebrew tap](https://github.com/polodealvarado/homebrew-tinydash).
 
+GitHub Actions must be enabled for the account before the workflows can run. The first Homebrew release, `v2.3.0`, was built and verified locally because Actions was disabled for the maintainer account.
+
 ## Release a version
 
 1. Update `CFBundleShortVersionString` in `macos-app/Info.plist` to a three-part version such as `2.3.0` and increment `CFBundleVersion`.
@@ -26,6 +28,26 @@ The tap's **Update cask** workflow checks for a new release daily. Run it manual
 ```
 
 Outputs are written to `dist/`, which is excluded from Git. Packaging does not install or launch the app.
+
+## Publish when Actions is unavailable
+
+With the release tag already pushed, build locally and publish using an authenticated GitHub CLI:
+
+```sh
+TINYDASH_RELEASE_TAG=v2.3.0 ./scripts/package.sh
+gh release create v2.3.0 --verify-tag --draft --title 'Tinydash v2.3.0' --notes-file .github/release-notes.md
+gh release upload v2.3.0 dist/Tinydash-2.3.0-universal.zip dist/Tinydash-2.3.0-universal.zip.sha256
+gh release edit v2.3.0 --draft=false
+```
+
+Use the new version number throughout; do not overwrite an existing release. In a checkout of `homebrew-tinydash`, update the cask manually:
+
+```sh
+python3 scripts/update-cask.py
+git add Casks/tinydash.rb
+git commit -m 'chore: update Tinydash cask'
+git push origin main
+```
 
 ## Signing status
 

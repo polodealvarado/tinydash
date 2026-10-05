@@ -31,6 +31,8 @@ Evolución técnica del panel y la aplicación de macOS.
 
 | 2.3.1 (5/10/2026) | Los contadores de agenda, resumen y reunión actual/próxima excluyen reuniones marcadas como hechas. El contador de la sección de correo coincide con sus pendientes de revisión local. Los contadores de Slack se actualizan al marcar como visto, antes de que termine la animación. Agenda, correo y tareas conservan las filas completadas para poder deshacer la marca. |
 
+| 2.4.0 (5/10/2026) | Periodo configurable para correo, Slack, agenda y tareas, de 1 a 365 días con 5 por defecto. Preferencia persistente en macOS, actualización al guardar, fechas visibles en agenda y **Show all** para las tareas fuera del periodo. La caché registra el periodo consultado y las sincronizaciones solapadas se serializan. |
+
 ## Decisiones
 
 - **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.

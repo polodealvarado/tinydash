@@ -130,6 +130,7 @@ a.chip:hover{text-decoration:underline}
 .settings h3{font-size:13px;font-weight:600;margin:0 0 10px;display:flex;gap:8px;align-items:center;justify-content:space-between}
 .settings>div+div{border-top:1px solid var(--line);padding-top:16px}
 .settings .row{display:flex;gap:8px;flex-wrap:wrap}
+.settings label{display:block;font-size:12px;margin:0 0 8px}
 .settings input{flex:1 1 220px;width:100%}
 .settings p{margin:8px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
 .settings code{font-size:10px}
@@ -184,7 +185,19 @@ a.chip:hover{text-decoration:underline}
   </nav>
 
   <section class="settings" id="settings" hidden aria-label="Settings">
-    <h2>Connections</h2>
+    <h2>Settings</h2>
+    <div>
+      <h3>Period</h3>
+      <form id="period-form">
+        <label for="period-days">Number of days</label>
+        <div class="row">
+          <input id="period-days" type="number" min="1" max="365" step="1" required value="5" aria-describedby="period-help">
+          <button class="btn" id="period-save" type="submit">Save period</button>
+        </div>
+      </form>
+      <p id="period-help">Look back over email, Slack, agenda and tasks. Choose 1–365 days, including today. Default: 5. Saving refreshes your connected services.</p>
+      <p id="period-state" role="status"></p>
+    </div>
     <div>
       <h3>Google <span class="chip" id="g-state"></span></h3>
       <div class="row" id="g-form">
@@ -210,9 +223,9 @@ a.chip:hover{text-decoration:underline}
 
   <main class="grid" id="dashboardGrid" data-view="all" aria-label="Your workspace">
     <section class="panel" id="p-cal" aria-labelledby="h-cal">
-      <div class="ph"><h2 id="h-cal"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg>Today's agenda</h2><span class="count" id="c-cal"></span></div>
+      <div class="ph"><h2 id="h-cal"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg>Agenda</h2><span class="count" id="c-cal"></span></div>
       <div class="body" id="b-cal"></div>
-      <div class="foot">Google Calendar</div>
+      <div class="foot" id="f-cal">Google Calendar</div>
     </section>
     <section class="panel" id="p-tasks" aria-labelledby="h-tasks">
       <div class="ph"><h2 id="h-tasks"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>Tasks</h2><span class="count" id="c-tasks"></span></div>
@@ -227,15 +240,15 @@ a.chip:hover{text-decoration:underline}
     <section class="panel" id="p-mail" aria-labelledby="h-mail">
       <div class="ph"><h2 id="h-mail"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>Unread email</h2><span class="count" id="c-mail"></span></div>
       <div class="body" id="b-mail"></div>
-      <div class="foot" id="f-mail">Gmail · inbox, last 3 days · checks apply only in Tinydash</div>
+      <div class="foot" id="f-mail">Gmail · inbox · checks apply only in Tinydash</div>
     </section>
     <section class="panel" id="p-slack" aria-labelledby="h-slack">
       <div class="ph"><h2 id="h-slack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 6 21M18 3l-2 18M3 9h18M2 15h18"/></svg>Slack</h2><span class="count" id="c-slack"></span></div>
-      <div class="sub">Direct messages · today</div>
+      <div class="sub" id="slackdm-period">Direct messages</div>
       <div class="body" id="b-slackdm"></div>
-      <div class="sub">Channel mentions · last 3 days</div>
+      <div class="sub" id="slackmen-period">Channel mentions</div>
       <div class="body" id="b-slackmen"></div>
-      <div class="foot">Slack</div>
+      <div class="foot">Slack · up to 20 direct messages and 15 mentions</div>
     </section>
   </main>
   <footer class="page-footer">
@@ -260,7 +273,7 @@ a.chip:hover{text-decoration:underline}
   const SEEN_KEY = "radar-slack-seen";
   let seen = {};
   try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || "{}") || {}; } catch(e) { seen = {}; }
-  (function prune(){ const cut = Date.now() - 7*86400000; for (const k in seen) if (seen[k] < cut) delete seen[k]; })();
+  (function prune(){ const cut = Date.now() - 366*86400000; for (const k in seen) if (seen[k] < cut) delete seen[k]; })();
   function saveSeen(){ try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch(e){} }
   const showSeen = { slackdm:false, slackmen:false };
   const CHECK_SVG = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -285,11 +298,13 @@ a.chip:hover{text-decoration:underline}
     const h = Math.floor(m/60), r = m%60;
     return "in " + h + " h" + (r ? " " + r + " min" : "");
   }
-  const toDate = v => { if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; };
+  const toDate = v => { if (!v) return null; const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v+"T00:00:00" : v); return isNaN(d) ? null : d; };
   $("dateLine").textContent = today.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
 
   // ---- state pushed by the app (see main.swift → push()) ----
-  let A = { google:false, slack:false, syncing:false, tasks:[], sync:null };
+  let A = { google:false, slack:false, syncing:false, tasks:[], sync:null, periodDays:5 };
+  let periodDirty = false;
+  let showAllTasks = false;
   const S = { cal:null, mail:null, slackdm:null, slackmen:null, err:{} };
   let ME = "";
 
@@ -363,9 +378,14 @@ a.chip:hover{text-decoration:underline}
   const convoName = m => m.im ? m.fromName : m.chName;
 
   // ---- renderers ----
+  function periodLabel(days){ return days === 1 ? "today" : "last " + days + " days"; }
+  function sourceDays(part){
+    // Old caches predate the shared setting; keep their original range until refreshed.
+    return A.sync && A.sync.periodDays || (A.sync ? ({cal:1, mail:3, slackdm:1, slackmen:3})[part] : A.periodDays);
+  }
   // Every pending indicator uses the same local completion state.
   function pendingEvents(now = Date.now()){
-    return (S.cal || []).filter(e => !done["cal-"+e.id] && (e.allDay || !e.end || e.end.getTime() > now));
+    return (S.cal || []).filter(e => !done["cal-"+e.id] && (!e.end || e.end.getTime() > now));
   }
   function pendingMail(){ return (S.mail || []).filter(t => !done["mail-"+t.id]); }
   function checkbox(key){
@@ -383,10 +403,11 @@ a.chip:hover{text-decoration:underline}
   }
   function renderCal(now = Date.now()){
     $("c-cal").textContent = "";
+    $("f-cal").textContent = "Google Calendar · " + periodLabel(sourceDays("cal")) + " · up to 50 events";
     if (gate("cal", A.google, "Google")) return;
     const evs = S.cal;
     $("c-cal").textContent = pendingEvents(now).length + " left";
-    if (!evs.length) { renderState("cal", "Nothing on the calendar today. A clear day for deep work."); return; }
+    if (!evs.length) { renderState("cal", "No events in this period."); return; }
     $("b-cal").innerHTML = '<ul class="list">' + evs.map(e => {
       const key = "cal-" + e.id;
       const live = !done[key] && !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
@@ -397,7 +418,7 @@ a.chip:hover{text-decoration:underline}
       if (e.conf) chips.push('<a class="chip accent" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>');
       const meta = [e.allDay ? "All day" : (e.end ? "until " + hhmm(e.end) : ""), e.people ? e.people + (e.people===1?" person":" people") : "", e.location].filter(Boolean).join(" · ");
       return '<li class="item'+(live?" live":"")+(past?" past":"")+(done[key]?" done":"")+'">'
-        + '<div class="when-col">'+(e.allDay ? "day" : (e.start ? hhmm(e.start) : "—"))+'</div>'
+        + '<div class="when-col">'+(e.start && ymd(e.start) !== ymd(today) ? esc(dayMonth(e.start))+'<br>' : '')+(e.allDay ? "day" : (e.start ? hhmm(e.start) : "—"))+'</div>'
         + '<div><div class="t">'+(e.link?'<a href="'+esc(e.link)+'" target="_blank" rel="noopener">'+esc(e.title)+'</a>':esc(e.title))+'</div>'
         + (meta?'<div class="meta">'+esc(meta)+'</div>':'')
         + (chips.length?'<div class="chips">'+chips.join("")+'</div>':'')+'</div>'
@@ -406,12 +427,12 @@ a.chip:hover{text-decoration:underline}
   }
   function renderMail(){
     $("c-mail").textContent = "";
-    $("f-mail").textContent = "Gmail · inbox, last 3 days · checks apply only in Tinydash";
+    $("f-mail").textContent = "Gmail · inbox, " + periodLabel(sourceDays("mail")) + " · up to 25 threads · checks apply only in Tinydash";
     if (gate("mail", A.google, "Google")) return;
     const th = S.mail, total = Math.max(th.length, S.mailTotal || 0);
     $("c-mail").textContent = pendingMail().length + " to review";
     if (total > th.length) $("f-mail").textContent += " · " + th.length + " of ~" + total + " threads loaded";
-    if (!th.length) { renderState("mail", "Inbox zero. No unread email in your inbox."); return; }
+    if (!th.length) { renderState("mail", "No unread inbox email in this period."); return; }
     $("b-mail").innerHTML = '<ul class="list">' + th.map(t => {
       const key = "mail-" + t.id;
       const chips = [];
@@ -434,9 +455,10 @@ a.chip:hover{text-decoration:underline}
     return [...by.values()].sort((a,b) => (b.last.when||0) - (a.last.when||0));
   }
   function renderSlackDm(){
+    $("slackdm-period").textContent = "Direct messages · " + periodLabel(sourceDays("slackdm"));
     if (gate("slackdm", A.slack, "Slack")) return;
     const all = latestPerConvo();
-    if (!all.length) { renderState("slackdm", "No direct messages today."); return; }
+    if (!all.length) { renderState("slackdm", "No direct messages in this period."); return; }
     const nSeen = all.filter(r => seen[slackKey("sdm", r.last)]).length;
     const rows = showSeen.slackdm ? all : all.filter(r => !seen[slackKey("sdm", r.last)]);
     $("b-slackdm").innerHTML = (!rows.length ? '<div class="state">All seen. New messages will show up here.</div>' : '<ul class="list">' + rows.map(({last:m, n}) => {
@@ -453,9 +475,10 @@ a.chip:hover{text-decoration:underline}
     }).join("") + '</ul>') + seenFooter("slackdm", nSeen);
   }
   function renderSlackMen(){
+    $("slackmen-period").textContent = "Channel mentions · " + periodLabel(sourceDays("slackmen"));
     if (gate("slackmen", A.slack, "Slack")) return;
     const allM = S.slackmen;
-    if (!allM.length) { renderState("slackmen", "No channel mentions in the last 3 days."); return; }
+    if (!allM.length) { renderState("slackmen", "No channel mentions in this period."); return; }
     const nSeen = allM.filter(m => seen[slackKey("smen", m)]).length;
     const ms = showSeen.slackmen ? allM : allM.filter(m => !seen[slackKey("smen", m)]);
     $("b-slackmen").innerHTML = (!ms.length ? '<div class="state">All mentions seen.</div>' : '<ul class="list">' + ms.map(m => {
@@ -477,15 +500,27 @@ a.chip:hover{text-decoration:underline}
   }
 
   // ---- tasks: {id, text, due:"YYYY-MM-DD"|"", done, created} saved by the app in tasks.json ----
-  function openTasks(){ return A.tasks.filter(t => !t.done); }
+  function visibleTasks(){
+    if (showAllTasks) return A.tasks;
+    const end = new Date(), start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - A.periodDays + 1);
+    const from = ymd(start), to = ymd(end);
+    return A.tasks.filter(t => {
+      const date = t.due || (t.created ? ymd(new Date(t.created)) : "");
+      return !date || (date >= from && date <= to);
+    });
+  }
+  function openTasks(){ return visibleTasks().filter(t => !t.done); }
   function renderTasks(){
     const todayStr = ymd(new Date());
-    const list = A.tasks.slice().sort((a,b) => (a.done - b.done) || ((a.due||"9999") < (b.due||"9999") ? -1 : (a.due||"9999") > (b.due||"9999") ? 1 : a.created - b.created));
+    const list = visibleTasks().slice().sort((a,b) => (a.done - b.done) || ((a.due||"9999") < (b.due||"9999") ? -1 : (a.due||"9999") > (b.due||"9999") ? 1 : a.created - b.created));
     const n = openTasks().length;
     $("c-tasks").textContent = n + " open";
-    const nDone = A.tasks.length - n;
-    $("f-tasks").innerHTML = "Saved on this Mac" + (nDone ? ' · <button type="button" id="clearDone">Clear '+nDone+' done</button>' : "");
-    if (!list.length) { renderState("tasks", "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
+    const nDone = list.length - n, hidden = A.tasks.length - list.length;
+    $("f-tasks").innerHTML = "Saved on this Mac · " + (showAllTasks ? "all dates" : periodLabel(A.periodDays))
+      + (hidden ? " · " + hidden + " outside period" : "")
+      + ' · <button type="button" id="toggleTaskPeriod">'+(showAllTasks ? "Use period" : "Show all")+'</button>'
+      + (nDone ? ' · <button type="button" id="clearDone">Clear '+nDone+' done</button>' : "");
+    if (!list.length) { renderState("tasks", hidden ? "No tasks in this period. Choose <b>Show all</b> to see your other tasks." : "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
     $("b-tasks").innerHTML = '<ul class="list">' + list.map(t => {
       let chip = "";
       if (t.due && !t.done) {
@@ -565,6 +600,9 @@ a.chip:hover{text-decoration:underline}
     $("fresh").dataset.state = A.syncing ? "syncing" : A.sync && A.sync.at ? "synced" : "idle";
   }
   function renderSettings(){
+    if (!periodDirty) $("period-days").value = A.periodDays;
+    $("period-save").disabled = A.syncing;
+    $("period-state").textContent = "Saved period: " + A.periodDays + (A.periodDays === 1 ? " day." : " days.");
     $("g-state").textContent = A.google ? "Connected" : "Not connected";
     $("g-state").className = "chip" + (A.google ? " accent" : "");
     $("g-form").hidden = A.google; $("g-on").hidden = !A.google;
@@ -591,6 +629,14 @@ a.chip:hover{text-decoration:underline}
   };
 
   // ---- events ----
+  $("period-days").addEventListener("input", () => { periodDirty = true; });
+  $("period-form").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const input = $("period-days"), days = Number(input.value);
+    if (!input.reportValidity() || !Number.isInteger(days) || days < 1 || days > 365) return;
+    periodDirty = false;
+    post({ cmd:"setPeriod", days });
+  });
   $("sync").addEventListener("click", () => post({ cmd:"sync" }));
   $("gear").addEventListener("click", () => { const s = $("settings"); s.hidden = !s.hidden; $("gear").setAttribute("aria-expanded", String(!s.hidden)); });
   $("g-connect").addEventListener("click", () => {
@@ -603,9 +649,10 @@ a.chip:hover{text-decoration:underline}
   $("s-off").addEventListener("click", () => post({ cmd:"disconnect", which:"slack" }));
 
   document.addEventListener("click", ev => {
-    const t = ev.target.closest && ev.target.closest("[data-seen],[data-toggle-seen],[data-del],#clearDone");
+    const t = ev.target.closest && ev.target.closest("[data-seen],[data-toggle-seen],[data-del],#clearDone,#toggleTaskPeriod");
     if (!t) return;
-    if (t.id === "clearDone") { setTasks(A.tasks.filter(x => !x.done)); return; }
+    if (t.id === "toggleTaskPeriod") { showAllTasks = !showAllTasks; renderAll(); return; }
+    if (t.id === "clearDone") { const ids = new Set(visibleTasks().filter(x => x.done).map(x => x.id)); setTasks(A.tasks.filter(x => !ids.has(x.id))); return; }
     if (t.dataset.del) { setTasks(A.tasks.filter(x => x.id !== t.dataset.del)); return; }
     if (t.dataset.toggleSeen) { showSeen[t.dataset.toggleSeen] = !showSeen[t.dataset.toggleSeen]; renderAll(); return; }
     const k = t.dataset.seen;

@@ -1,5 +1,5 @@
 // Tinydash — menu bar app for macOS
-// Left-click the icon: today's agenda, tasks, unread email and Slack in a popover.
+// Left-click the icon: agenda, tasks, unread email and Slack in a popover.
 // Right-click: Sync now · Open at login · Quit.
 // Talks to Google and Slack directly (no claude.ai). Secrets live in the Keychain;
 // tasks and the last sync live in ~/Library/Application Support/YourNymiz/.
@@ -15,7 +15,12 @@ let POPOVER_SIZE = NSSize(width: 460, height: 680)
 let SYNC_HOUR = 7
 let AUTO_CHECK: TimeInterval = 15 * 60
 let GOOGLE_SCOPES = "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly"
-let GMAIL_QUERY = "in:inbox is:unread newer_than:3d -category:promotions -category:social -category:forums"
+let DEFAULT_PERIOD_DAYS = 5
+let PERIOD_DAYS_KEY = "dashboardPeriodDays"
+func savedPeriodDays() -> Int {
+    let value = UserDefaults.standard.integer(forKey: PERIOD_DAYS_KEY)
+    return (1...365).contains(value) ? value : DEFAULT_PERIOD_DAYS
+}
 
 // MARK: storage
 
@@ -137,9 +142,11 @@ func loopbackCode(state: String, authURL: @escaping (String) -> URL) async throw
 }
 
 // threads.list only returns ids; fetch each thread's headers + snippet in parallel.
-func fetchGmail(_ token: String) async throws -> [String: Any] {
+func fetchGmail(_ token: String, from start: Date, until end: Date) async throws -> [String: Any] {
     let base = "https://gmail.googleapis.com/gmail/v1/users/me/threads"
-    let list = try await getJSON(makeURL(base, [("q", GMAIL_QUERY), ("maxResults", "25")]), token: token)
+    // Epoch seconds preserve the Mac's local date boundaries in Gmail search.
+    let query = "in:inbox is:unread after:\(Int(start.timeIntervalSince1970)) before:\(Int(end.timeIntervalSince1970)) -category:promotions -category:social -category:forums"
+    let list = try await getJSON(makeURL(base, [("q", query), ("maxResults", "25")]), token: token)
     let ids = ((list["threads"] as? [[String: Any]]) ?? []).compactMap { $0["id"] as? String }
     let threads = try await withThrowingTaskGroup(of: (Int, [String: Any]).self) { group in
         for (i, id) in ids.enumerated() {
@@ -165,7 +172,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var secrets = Keychain.load()
     private var tasks: [Any] = (readJSON("tasks.json") as? [Any]) ?? []
     private var lastSync = readJSON("sync.json") as? [String: Any]
+    private var periodDays = savedPeriodDays()
     private var syncing = false
+    private var syncRequested = false
     private var googleAccess: (token: String, expires: Date)?
     private var pageDay = ""
 
@@ -215,19 +224,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private func maybeAutoSync(launch: Bool = false) {
         let last = (lastSync?["at"] as? Double).map { Date(timeIntervalSince1970: $0 / 1000) }
         let syncedToday = last.map { Calendar.current.isDateInToday($0) } ?? false
-        if !syncedToday && (launch || Calendar.current.component(.hour, from: Date()) >= SYNC_HOUR) {
+        let periodChanged = (lastSync?["periodDays"] as? Int) != periodDays
+        if (launch && periodChanged) || (!syncedToday && (launch || Calendar.current.component(.hour, from: Date()) >= SYNC_HOUR)) {
             Task { await sync() }
         }
     }
 
     private func sync() async {
-        guard !syncing, secrets["googleRefresh"] != nil || secrets["slackToken"] != nil else { return }
+        if syncing { syncRequested = true; return }
+        guard secrets["googleRefresh"] != nil || secrets["slackToken"] != nil else { return }
+        let days = periodDays
         syncing = true
         push()
-        async let g = runGoogle()
-        async let s = runSlack()
+        async let g = runGoogle(days: days)
+        async let s = runSlack(days: days)
         let (gd, ge) = await g, (sd, se) = await s
-        var result: [String: Any] = ["at": Date().timeIntervalSince1970 * 1000]
+        var result: [String: Any] = ["at": Date().timeIntervalSince1970 * 1000, "periodDays": days]
         result.merge(gd) { a, _ in a }
         result.merge(sd) { a, _ in a }
         var err: [String: String] = [:]
@@ -238,19 +250,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         writeJSON("sync.json", result)
         syncing = false
         if pageDay != ymd(Date()) { loadPage() } else { push() }   // a new day: reload so "today" moves on
+        if syncRequested {
+            syncRequested = false
+            Task { await sync() }
+        }
     }
 
-    private func runGoogle() async -> ([String: Any], String?) {
+    private func runGoogle(days: Int) async -> ([String: Any], String?) {
         guard secrets["googleRefresh"] != nil else { return ([:], nil) }
         do {
             let token = try await googleToken()
-            let start = Calendar.current.startOfDay(for: Date())
-            let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
+            let today = Calendar.current.startOfDay(for: Date())
+            let start = Calendar.current.date(byAdding: .day, value: -(days - 1), to: today)!
+            let end = Calendar.current.date(byAdding: .day, value: 1, to: today)!
             let iso = ISO8601DateFormatter()
             async let cal = getJSON(makeURL("https://www.googleapis.com/calendar/v3/calendars/primary/events", [
                 ("timeMin", iso.string(from: start)), ("timeMax", iso.string(from: end)), ("singleEvents", "true"),
                 ("orderBy", "startTime"), ("maxResults", "50"), ("timeZone", TimeZone.current.identifier)]), token: token)
-            async let mail = fetchGmail(token)
+            async let mail = fetchGmail(token, from: start, until: end)
             return (["cal": try await cal, "mail": try await mail], nil)
         } catch {
             return ([:], error.localizedDescription)
@@ -303,7 +320,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         }
     }
 
-    private func runSlack() async -> ([String: Any], String?) {
+    private func runSlack(days: Int) async -> ([String: Any], String?) {
         guard let token = secrets["slackToken"] else { return ([:], nil) }
         func slack(_ method: String, _ q: [(String, String)]) async throws -> [String: Any] {
             let r = try await getJSON(makeURL("https://slack.com/api/" + method, q), token: token)
@@ -316,10 +333,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         do {
             let me = (try await slack("auth.test", []))["user_id"] as? String ?? ""
             let day = Calendar.current.startOfDay(for: Date())
-            let yesterday = ymd(day.addingTimeInterval(-86400)), threeAgo = ymd(day.addingTimeInterval(-3 * 86400))
-            // Slack's after: is exclusive: after:<yesterday> = today.
-            async let dm = slack("search.messages", [("query", "to:<@\(me)> after:\(yesterday)"), ("count", "20"), ("sort", "timestamp")])
-            async let men = slack("search.messages", [("query", "<@\(me)> -is:dm after:\(threeAgo)"), ("count", "15"), ("sort", "timestamp")])
+            let after = ymd(Calendar.current.date(byAdding: .day, value: -days, to: day)!)
+            // Slack's after: is exclusive; subtract N days to include today and N-1 earlier dates.
+            async let dm = slack("search.messages", [("query", "to:<@\(me)> after:\(after)"), ("count", "20"), ("sort", "timestamp")])
+            async let men = slack("search.messages", [("query", "<@\(me)> -is:dm after:\(after)"), ("count", "15"), ("sort", "timestamp")])
             return (["slackDm": try await dm, "slackMen": try await men, "me": me], nil)
         } catch {
             return ([:], error.localizedDescription)
@@ -329,7 +346,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // Whole state to the page; it re-renders everything from it.
     private func push() {
         let state: [String: Any] = ["google": secrets["googleRefresh"] != nil, "slack": secrets["slackToken"] != nil,
-                                    "syncing": syncing, "tasks": tasks, "sync": lastSync ?? NSNull()]
+                                    "syncing": syncing, "tasks": tasks, "sync": lastSync ?? NSNull(), "periodDays": periodDays]
         guard let d = try? JSONSerialization.data(withJSONObject: state), let json = String(data: d, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.nymizUpdate && window.nymizUpdate(\(json))")
     }
@@ -343,6 +360,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "saveTasks":
             tasks = (m["tasks"] as? [Any]) ?? []
             writeJSON("tasks.json", tasks)
+        case "setPeriod":
+            guard let days = m["days"] as? Int, (1...365).contains(days) else { return }
+            periodDays = days
+            UserDefaults.standard.set(days, forKey: PERIOD_DAYS_KEY)
+            push()
+            Task { await sync() }
         case "connectGoogle":
             guard let id = m["clientId"] as? String, let secret = m["clientSecret"] as? String else { return }
             Task { await connectGoogle(clientId: id, clientSecret: secret) }

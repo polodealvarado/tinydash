@@ -26,7 +26,7 @@ Historical versions used a hosted panel. The current app bundles its panel local
 
 - Google: desktop OAuth loopback + PKCE (`loopbackCode()`), scopes `calendar.readonly gmail.readonly`, refresh token in the Keychain.
 - Slack: the user pastes a user token (`xoxp-`, scope `search:read`). Queries in `runSlack()`; Slack's `after:` is exclusive.
-- Sync: daily (`maybeAutoSync`: at launch, every `AUTO_CHECK`, on wake, if not synced today and hour ≥ `SYNC_HOUR`) plus Sync all / Sync now. Each sync replaces the previous one.
+- Sync: daily (`maybeAutoSync`: at launch, every `AUTO_CHECK`, on wake, if not synced today and hour ≥ `SYNC_HOUR`) plus Sync all / Sync now. Each sync replaces the previous one. `setPeriod {days}` persists `dashboardPeriodDays` in UserDefaults (1–365, default 5) and queues a refresh; state and each sync snapshot include `periodDays`. Older caches refresh on launch. The period applies to all four sections; Tasks offers Show all and only clears completed tasks in its visible view.
 - Every http(s) link opens in the default browser.
 - Per-viewer ticks/seen marks are still in `localStorage` (`radar-done-<date>`, `radar-slack-seen`), wrapped in try/catch.
 - Theme tokens on `:root` with a dark palette under `prefers-color-scheme`. `[hidden]{display:none!important}` is required because panels set `display`.

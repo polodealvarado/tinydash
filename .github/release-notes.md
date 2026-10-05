@@ -1,9 +1,9 @@
-## Changes in 2.3.1
+## Changes in 2.4.0
 
-- Completing a calendar event immediately updates every pending counter and removes it from Now/Next.
-- Email section counts now match the local review status shown in the summary.
-- Slack counters update immediately when a message is marked as seen.
-- Completed calendar events, emails, and tasks stay visible so they can be unchecked.
+- Configure the lookback period for email, Slack, agenda, and tasks in Settings.
+- Defaults to 5 days, including today; accepts 1–365 days and saves the preference on your Mac.
+- Saving the period refreshes connected services. Older cached results refresh automatically on launch.
+- Agenda shows dates for past events; Tasks includes Show all for items outside the period.
 
 ## Install with Homebrew
 

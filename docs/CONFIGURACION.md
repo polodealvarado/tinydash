@@ -20,13 +20,25 @@ Si Workspace no te deja crear el proyecto o el cliente, lo tiene que permitir un
 3. **Install to Workspace.** Puede que lo tenga que aprobar un administrador.
 4. Copia el **User OAuth Token** (`xoxp-…`), pégalo en **Settings → Slack** y pulsa **Save**.
 
-## Dónde se guarda cada cosa
+## Periodo de consulta
+
+En **Settings → Period → Number of days** puedes elegir de **1 a 365 días**. El valor inicial es **5**, incluido hoy. Pulsa **Save period** para guardar y volver a sincronizar las conexiones. El ajuste se conserva al cerrar la app y también funciona para tareas sin conectar Google o Slack.
+
+- **Correo:** hilos sin leer de la bandeja de entrada dentro del periodo, con los filtros de categorías habituales. Hasta 25 hilos por sincronización.
+- **Agenda:** reuniones de los últimos N días, incluido hoy, hasta 50 eventos. Las reuniones que ya terminaron se muestran como pasadas y no cuentan como pendientes.
+- **Slack:** mensajes directos y menciones en el mismo periodo; hasta 20 mensajes directos y 15 menciones. Los mensajes directos se agrupan por conversación.
+- **Tareas:** se usa la fecha de vencimiento o, si no existe, la de creación. **Show all** muestra también las tareas fuera del periodo. Filtrar no elimina tareas; **Clear done** solo elimina las completadas de la vista actual.
+
+El periodo limita qué datos se consultan y muestran; no crea un archivo permanente de pendientes. Las marcas locales de correo y agenda siguen siendo diarias. Las marcas de Slack se conservan hasta 366 días.
+
+## Almacenamiento
 
 | Qué | Dónde |
 |---|---|
 | Client ID/secret de Google, refresh token y token de Slack | Llavero de macOS, elemento `com.nymiz.yournymiz` |
 | Tareas | `~/Library/Application Support/YourNymiz/tasks.json` |
 | Última sincronización | `~/Library/Application Support/YourNymiz/sync.json` |
+| Periodo de consulta | Preferencias de macOS (`UserDefaults`, clave `dashboardPeriodDays`) |
 | Marcas de hecho/visto | `localStorage` del WebView (solo este Mac) |
 
 **Aviso del llavero:** la app está firmada ad hoc, así que tras recompilar macOS puede pedir autorización para leer el llavero. Comprueba que la solicitud corresponde a la copia de Tinydash que has instalado.

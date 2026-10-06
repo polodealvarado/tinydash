@@ -37,7 +37,10 @@ Evolución técnica del panel y la aplicación de macOS.
 
 | 2.4.2 (6/10/2026) | Retirada la casilla de hecho de la agenda. Los pendientes y Now/Next dependen del horario; se ignoran las marcas antiguas de calendario. |
 
+| 2.4.3 (6/10/2026) | Las tareas pendientes siempre son visibles, incluso con vencimiento futuro. El periodo solo filtra las completadas, evitando que tareas guardadas parezcan no haberse añadido. |
+
 ## Decisiones
+
 
 
 - **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.

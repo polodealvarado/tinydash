@@ -31,6 +31,7 @@ Historical versions used a hosted panel. The current app bundles its panel local
 - Every http(s) link opens in the default browser.
 - Per-viewer ticks/seen marks are still in `localStorage` (`radar-done-<date>`, `radar-slack-seen`), wrapped in try/catch.
 - Agenda has no completion checkbox: pending counts and Now/Next depend on today's event times and ignore legacy calendar done marks. Mail and tasks retain their checkboxes.
+- Open tasks always bypass the period filter. Only completed tasks are filtered by due/creation date; never hide newly created tasks just because their due date is in the future.
 - Theme tokens on `:root` with a dark palette under `prefers-color-scheme`. `[hidden]{display:none!important}` is required because panels set `display`.
 
 ## Branding and compatibility

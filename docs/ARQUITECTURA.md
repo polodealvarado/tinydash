@@ -39,7 +39,7 @@ Cada sección comparte su criterio entre lista, resumen y contadores: agenda usa
 
 Una vez al día (ver `docs/CONFIGURACION.md`) y con **Sync all**. Cada sincronización sustituye entera la anterior: si una fuente falla, su sección muestra el error en vez de datos viejos. Si la página se cargó otro día, la app la recarga al sincronizar para que "hoy" avance.
 
-`periodDays` vale 5 por defecto y se guarda en `UserDefaults`; Swift y el formulario validan el rango 1–365. Guardar el periodo inicia una sincronización. Si hay una en curso, la siguiente queda en cola. Al arrancar, una caché sin periodo o con otro valor se actualiza aunque se haya sincronizado ese día. Gmail utiliza [límites de fecha en segundos](https://developers.google.com/workspace/gmail/api/guides/filtering) para respetar la zona horaria local. Las tareas se filtran localmente por vencimiento o creación, con **Show all** para verlas todas.
+`periodDays` vale 5 por defecto y se guarda en `UserDefaults`; Swift y el formulario validan el rango 1–365. Guardar el periodo inicia una sincronización. Si hay una en curso, la siguiente queda en cola. Al arrancar, una caché sin periodo o con otro valor se actualiza aunque se haya sincronizado ese día. Gmail utiliza [límites de fecha en segundos](https://developers.google.com/workspace/gmail/api/guides/filtering) para respetar la zona horaria local. Las tareas pendientes siempre son visibles. Solo las completadas se filtran localmente por vencimiento o creación, con **Show all** para verlas todas.
 
 ## Editor de tareas
 

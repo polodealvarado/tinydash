@@ -27,7 +27,7 @@ En **Settings → Period → Number of days** puedes elegir de **1 a 365 días**
 - **Correo:** hilos sin leer de la bandeja de entrada dentro del periodo, con los filtros de categorías habituales. Hasta 25 hilos por sincronización.
 - **Agenda:** siempre muestra solo los eventos de hoy, independientemente del periodo configurado, hasta 50 eventos. Incluye eventos que abarcan hoy aunque duren varios días. Las reuniones que ya terminaron se muestran como pasadas y no cuentan como pendientes.
 - **Slack:** mensajes directos y menciones en el mismo periodo; hasta 20 mensajes directos y 15 menciones. Los mensajes directos se agrupan por conversación.
-- **Tareas:** se usa la fecha de vencimiento o, si no existe, la de creación. **Show all** muestra también las tareas fuera del periodo. Filtrar no elimina tareas; **Clear done** solo elimina las completadas de la vista actual.
+- **Tareas:** las pendientes siempre son visibles, incluidas las futuras y las vencidas. El periodo filtra únicamente las completadas por fecha de vencimiento o, si no existe, de creación. **Show all** muestra también las completadas fuera del periodo. Filtrar no elimina tareas; **Clear done** solo elimina las completadas de la vista actual.
 
 El periodo limita qué datos se consultan y muestran; no crea un archivo permanente de pendientes. En agenda no hay casilla de hecho: los pendientes se calculan por horario y las marcas antiguas se ignoran. Las marcas locales de correo siguen siendo diarias. Las marcas de Slack se conservan hasta 366 días.
 

@@ -200,7 +200,7 @@ a.chip:hover{text-decoration:underline}
           <button class="btn" id="period-save" type="submit">Save period</button>
         </div>
       </form>
-      <p id="period-help">Look back over email, Slack and tasks. Choose 1–365 days, including today. Default: 5. Agenda always shows today. Saving refreshes your connected services.</p>
+      <p id="period-help">Look back over email, Slack and completed tasks. Choose 1–365 days, including today. Default: 5. Open tasks are always visible; agenda always shows today. Saving refreshes your connected services.</p>
       <p id="period-state" role="status"></p>
     </div>
     <div>
@@ -519,6 +519,8 @@ a.chip:hover{text-decoration:underline}
     const end = new Date(), start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - A.periodDays + 1);
     const from = ymd(start), to = ymd(end);
     return A.tasks.filter(t => {
+      // A review window must never hide unfinished work, including future due dates.
+      if (!t.done) return true;
       const date = t.due || (t.created ? ymd(new Date(t.created)) : "");
       return !date || (date >= from && date <= to);
     });
@@ -530,11 +532,11 @@ a.chip:hover{text-decoration:underline}
     const n = openTasks().length;
     $("c-tasks").textContent = n + " open";
     const nDone = list.length - n, hidden = A.tasks.length - list.length;
-    $("f-tasks").innerHTML = "Saved on this Mac · " + (showAllTasks ? "all dates" : periodLabel(A.periodDays))
-      + (hidden ? " · " + hidden + " outside period" : "")
+    $("f-tasks").innerHTML = "Open tasks always shown · " + (showAllTasks ? "all completed tasks" : "completed: " + periodLabel(A.periodDays))
+      + (hidden ? " · " + hidden + " completed outside period" : "")
       + ' · <button type="button" id="toggleTaskPeriod">'+(showAllTasks ? "Use period" : "Show all")+'</button>'
       + (nDone ? ' · <button type="button" id="clearDone">Clear '+nDone+' done</button>' : "");
-    if (!list.length) { renderState("tasks", hidden ? "No tasks in this period. Choose <b>Show all</b> to see your other tasks." : "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
+    if (!list.length) { renderState("tasks", hidden ? "No open tasks. Choose <b>Show all</b> to see your completed tasks." : "A little room to focus.<br>Add a task whenever you need a reminder."); return; }
     $("b-tasks").innerHTML = '<ul class="list">' + list.map(t => {
       let chip = "";
       if (t.due && !t.done) {

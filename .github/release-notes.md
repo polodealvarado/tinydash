@@ -1,8 +1,8 @@
-## Changes in 2.4.2
+## Changes in 2.4.3
 
-- Remove the completion checkbox from Agenda and use the space for event details.
-- Events left and Now/Next follow today's event times; old calendar completion marks are ignored.
-- Task and email completion controls remain available.
+- Open tasks are always visible, including future and overdue tasks.
+- The review period filters only completed tasks. Show all includes completed items outside the period.
+- Fix the appearance that new tasks were not saved when their due date was outside the review window.
 
 ## Install with Homebrew
 

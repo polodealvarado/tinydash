@@ -30,6 +30,7 @@ Historical versions used a hosted panel. The current app bundles its panel local
 - Task editor: multiline textarea with automatic growth, vertical resizing and Expand/Compact. Enter inserts a line; Cmd/Ctrl+Enter submits. Draft text/due date persist in localStorage (`tinydash-task-draft`) until submitted. Saved text is escaped and rendered with pre-wrap.
 - Every http(s) link opens in the default browser.
 - Per-viewer ticks/seen marks are still in `localStorage` (`radar-done-<date>`, `radar-slack-seen`), wrapped in try/catch.
+- Agenda has no completion checkbox: pending counts and Now/Next depend on today's event times and ignore legacy calendar done marks. Mail and tasks retain their checkboxes.
 - Theme tokens on `:root` with a dark palette under `prefers-color-scheme`. `[hidden]{display:none!important}` is required because panels set `display`.
 
 ## Branding and compatibility

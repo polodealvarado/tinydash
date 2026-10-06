@@ -35,7 +35,10 @@ Evolución técnica del panel y la aplicación de macOS.
 
 | 2.4.1 (6/10/2026) | Editor de tareas multilínea con crecimiento automático, Expand/Compact, redimensionado, atajo ⌘Enter y borrador local. Agenda vuelve a mostrar exclusivamente hoy; consulta y filtros locales excluyen otros días incluso con cachés anteriores. Correo, Slack y tareas mantienen el periodo configurable. |
 
+| 2.4.2 (6/10/2026) | Retirada la casilla de hecho de la agenda. Los pendientes y Now/Next dependen del horario; se ignoran las marcas antiguas de calendario. |
+
 ## Decisiones
+
 
 - **(v1, sustituida en la v2) La app abre el panel en vez de leer los datos ella misma.** Elegido para no tener que crear credenciales de Google Cloud ni otra app de Slack (que habría tenido que aprobar el administrador). Contrapartida: el icono no puede mostrar un contador de pendientes.
 - **Drive:** se retiró la sección para reducir el alcance de la integración.

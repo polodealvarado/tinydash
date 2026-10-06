@@ -92,6 +92,7 @@ section.panel{background:var(--surface);border:1px solid var(--line);border-radi
 .item:first-child{border-top:0}
 .item:hover{background:var(--hover)}
 #p-tasks .item{grid-template-columns:18px minmax(0,1fr) 24px}
+#p-cal .item{grid-template-columns:43px minmax(0,1fr)}
 #p-tasks .item .t{white-space:pre-wrap}
 .item.live{background:var(--accent-soft);box-shadow:inset 3px 0 var(--accent)}
 .item.done .t{text-decoration:line-through;color:var(--faint)}
@@ -397,9 +398,9 @@ a.chip:hover{text-decoration:underline}
     // Also filter cached results from versions that fetched a multi-day agenda.
     return (S.cal || []).filter(e => e.start && e.start < end && (e.end ? e.end > start : e.start >= start));
   }
-  // Every pending indicator uses the same local completion state.
+  // Calendar follows its schedule; mail keeps local completion marks.
   function pendingEvents(now = Date.now()){
-    return todayEvents(now).filter(e => !done["cal-"+e.id] && (!e.end || e.end.getTime() > now));
+    return todayEvents(now).filter(e => !e.end || e.end.getTime() > now);
   }
   function pendingMail(){ return (S.mail || []).filter(t => !done["mail-"+t.id]); }
   function checkbox(key){
@@ -423,20 +424,19 @@ a.chip:hover{text-decoration:underline}
     $("c-cal").textContent = pendingEvents(now).length + " left";
     if (!evs.length) { renderState("cal", "No events today."); return; }
     $("b-cal").innerHTML = '<ul class="list">' + evs.map(e => {
-      const key = "cal-" + e.id;
-      const live = !done[key] && !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
+      const live = !e.allDay && e.start && e.end && e.start.getTime() <= now && e.end.getTime() > now;
       const past = !e.allDay && e.end && e.end.getTime() <= now;
       const chips = [];
       if (live) chips.push('<span class="chip accent">In progress</span>');
-      if (e.needsReply && !done[key] && !past) chips.push('<span class="chip urgent">Not answered</span>');
+      if (e.needsReply && !past) chips.push('<span class="chip urgent">Not answered</span>');
       if (e.conf) chips.push('<a class="chip accent" href="'+esc(e.conf)+'" target="_blank" rel="noopener">Join</a>');
       const meta = [e.allDay ? "All day" : (e.end ? "until " + hhmm(e.end) : ""), e.people ? e.people + (e.people===1?" person":" people") : "", e.location].filter(Boolean).join(" · ");
-      return '<li class="item'+(live?" live":"")+(past?" past":"")+(done[key]?" done":"")+'">'
+      return '<li class="item'+(live?" live":"")+(past?" past":"")+'">'
         + '<div class="when-col">'+(e.allDay ? "day" : (ymd(e.start) !== ymd(new Date(now)) ? "ongoing" : hhmm(e.start)))+'</div>'
         + '<div><div class="t">'+(e.link?'<a href="'+esc(e.link)+'" target="_blank" rel="noopener">'+esc(e.title)+'</a>':esc(e.title))+'</div>'
         + (meta?'<div class="meta">'+esc(meta)+'</div>':'')
         + (chips.length?'<div class="chips">'+chips.join("")+'</div>':'')+'</div>'
-        + checkbox(key) + '</li>';
+        + '</li>';
     }).join("") + '</ul>';
   }
   function renderMail(){

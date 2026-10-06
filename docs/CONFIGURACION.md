@@ -29,7 +29,7 @@ En **Settings → Period → Number of days** puedes elegir de **1 a 365 días**
 - **Slack:** mensajes directos y menciones en el mismo periodo; hasta 20 mensajes directos y 15 menciones. Los mensajes directos se agrupan por conversación.
 - **Tareas:** se usa la fecha de vencimiento o, si no existe, la de creación. **Show all** muestra también las tareas fuera del periodo. Filtrar no elimina tareas; **Clear done** solo elimina las completadas de la vista actual.
 
-El periodo limita qué datos se consultan y muestran; no crea un archivo permanente de pendientes. Las marcas locales de correo y agenda siguen siendo diarias. Las marcas de Slack se conservan hasta 366 días.
+El periodo limita qué datos se consultan y muestran; no crea un archivo permanente de pendientes. En agenda no hay casilla de hecho: los pendientes se calculan por horario y las marcas antiguas se ignoran. Las marcas locales de correo siguen siendo diarias. Las marcas de Slack se conservan hasta 366 días.
 
 ## Editor de tareas
 

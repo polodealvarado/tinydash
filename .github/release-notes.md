@@ -1,9 +1,8 @@
-## Changes in 2.4.1
+## Changes in 2.4.2
 
-- Write multiline tasks in a growing, resizable editor with Expand/Compact controls.
-- Press Enter for a new line, or Cmd+Enter to add a task. Unsubmitted drafts are saved locally.
-- Agenda, Events left and Now/Next now use only today's events, including when older cached data is loaded.
-- The configurable lookback period continues to apply to email, Slack and tasks.
+- Remove the completion checkbox from Agenda and use the space for event details.
+- Events left and Now/Next follow today's event times; old calendar completion marks are ignored.
+- Task and email completion controls remain available.
 
 ## Install with Homebrew
 

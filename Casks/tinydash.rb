@@ -1,6 +1,6 @@
 cask "tinydash" do
-  version "2.4.2"
-  sha256 "2467b940cfa254cdeda2cdaf78e204ddc2360a385b971ac3f6773fd392e3990e"
+  version "2.4.3"
+  sha256 "cf08662ddadb8700dbd3f21ae9624a222592ef15865fa1424278cdfbac8cfbda"
 
   url "https://github.com/polodealvarado/tinydash/releases/download/v#{version}/Tinydash-#{version}-universal.zip"
   name "Tinydash"

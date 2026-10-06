@@ -22,14 +22,14 @@ Tinydash brings your daily workspace into a small panel in the macOS menu bar. C
 
 ## Features
 
-- **Agenda** — Google Calendar events within your selected period and quick links to join calls.
-- **Tasks and reminders** — create tasks, add optional due dates, and track completion.
+- **Today's agenda** — only today's Google Calendar events, remaining meetings, and quick links to join calls.
+- **Tasks and reminders** — write multiline tasks in an expandable editor, add optional due dates, and track completion. Unsubmitted drafts stay on your Mac.
 - **Unread email** — recent Gmail conversations with sender details and message previews.
 - **Slack overview** — direct messages and channel mentions, with local “seen” markers.
 - **Quick navigation** — switch between Overview, Agenda, Tasks, Inbox, and Slack.
 - **Light and dark appearance** — follows your Mac's appearance settings.
 - **Daily sync** — refreshes automatically each day, with **Sync all** available anytime.
-- **Adjustable period** — review the last 5 days by default; choose 1–365 days in Settings for email, Slack, agenda, and tasks.
+- **Adjustable period** — review the last 5 days by default; choose 1–365 days in Settings for email, Slack, and tasks. Agenda always shows today.
 
 ## Installation
 
@@ -90,6 +90,7 @@ Credentials are stored in the **macOS Keychain**. Tasks, cached results, and loc
 1. Click the **pencil** in the menu bar to open Tinydash.
 2. Use **Overview** for the full dashboard, or select a counter or section to focus on one area.
 3. Add tasks with an optional due date, and mark items as done or seen as you work.
+   Use **Expand** for more writing space. **Enter** adds a line; **⌘Enter** adds the task. Line breaks remain visible in saved tasks.
 4. Choose **Sync all** whenever you want to refresh your connected services.
 5. Set **Settings → Period → Number of days** to change the lookback window. **Save period** saves your choice and refreshes connected services. Use **Show all** in Tasks to see items outside the period.
 

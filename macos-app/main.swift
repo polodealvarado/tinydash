@@ -225,7 +225,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let last = (lastSync?["at"] as? Double).map { Date(timeIntervalSince1970: $0 / 1000) }
         let syncedToday = last.map { Calendar.current.isDateInToday($0) } ?? false
         let periodChanged = (lastSync?["periodDays"] as? Int) != periodDays
-        if (launch && periodChanged) || (!syncedToday && (launch || Calendar.current.component(.hour, from: Date()) >= SYNC_HOUR)) {
+        let agendaChanged = secrets["googleRefresh"] != nil && (lastSync?["agendaDay"] as? String) != ymd(Date())
+        if (launch && (periodChanged || agendaChanged)) || (!syncedToday && (launch || Calendar.current.component(.hour, from: Date()) >= SYNC_HOUR)) {
             Task { await sync() }
         }
     }
@@ -261,14 +262,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         do {
             let token = try await googleToken()
             let today = Calendar.current.startOfDay(for: Date())
-            let start = Calendar.current.date(byAdding: .day, value: -(days - 1), to: today)!
+            let mailStart = Calendar.current.date(byAdding: .day, value: -(days - 1), to: today)!
             let end = Calendar.current.date(byAdding: .day, value: 1, to: today)!
             let iso = ISO8601DateFormatter()
             async let cal = getJSON(makeURL("https://www.googleapis.com/calendar/v3/calendars/primary/events", [
-                ("timeMin", iso.string(from: start)), ("timeMax", iso.string(from: end)), ("singleEvents", "true"),
+                ("timeMin", iso.string(from: today)), ("timeMax", iso.string(from: end)), ("singleEvents", "true"),
                 ("orderBy", "startTime"), ("maxResults", "50"), ("timeZone", TimeZone.current.identifier)]), token: token)
-            async let mail = fetchGmail(token, from: start, until: end)
-            return (["cal": try await cal, "mail": try await mail], nil)
+            async let mail = fetchGmail(token, from: mailStart, until: end)
+            return (["cal": try await cal, "mail": try await mail, "agendaDay": ymd(today)], nil)
         } catch {
             return ([:], error.localizedDescription)
         }

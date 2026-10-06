@@ -1,9 +1,9 @@
-## Changes in 2.4.0
+## Changes in 2.4.1
 
-- Configure the lookback period for email, Slack, agenda, and tasks in Settings.
-- Defaults to 5 days, including today; accepts 1–365 days and saves the preference on your Mac.
-- Saving the period refreshes connected services. Older cached results refresh automatically on launch.
-- Agenda shows dates for past events; Tasks includes Show all for items outside the period.
+- Write multiline tasks in a growing, resizable editor with Expand/Compact controls.
+- Press Enter for a new line, or Cmd+Enter to add a task. Unsubmitted drafts are saved locally.
+- Agenda, Events left and Now/Next now use only today's events, including when older cached data is loaded.
+- The configurable lookback period continues to apply to email, Slack and tasks.
 
 ## Install with Homebrew
 
